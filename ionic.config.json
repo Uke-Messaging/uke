@@ -1,0 +1,7 @@
+{
+  "name": "uke",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
