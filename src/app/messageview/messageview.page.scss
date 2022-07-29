@@ -1,0 +1,30 @@
+@import url("../../theme/variables.scss");
+
+.sender {
+    background-color: #00AE7D;
+    color: white;
+    text-align: right;
+    margin-left: 70%;
+}
+
+ion-card {
+    width: 35%;
+}
+
+ion-list {
+    opacity: 100%;
+}
+
+.send  {
+    display: flex;
+    background-color: #F1F1F1;
+    position: absolute;
+    bottom: 40px;
+    margin-left: 10%;
+    align-items: center;
+    align-self: center;
+    width: 80%;
+    border-radius: 50px;
+    box-shadow: -2px -4px 13px 3px rgba(0,0,0,0.21);
+
+}
