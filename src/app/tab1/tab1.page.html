@@ -14,7 +14,7 @@
   </ion-header>
 
   <ion-list>
-    <ion-item [routerLink]="['/messageview']" *ngFor="let msg of convos">
+    <ion-item (click)="viewMessage(msg)" *ngFor="let msg of convos">
       <ion-label>
         <h2>{{ msg.sender.uniqueId }}</h2>
         <p>{{ msg.lastMessage.message }}</p>

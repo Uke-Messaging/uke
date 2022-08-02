@@ -3,28 +3,38 @@
 .sender {
     background-color: #00AE7D;
     color: white;
-    text-align: right;
-    margin-left: 70%;
+    text-align: left;
+    margin-left: 50%;
 }
 
 ion-card {
-    width: 35%;
+    width: 55%;
+    border-radius: 16px;
 }
 
 ion-list {
     opacity: 100%;
 }
 
-.send  {
+.compose {
     display: flex;
-    background-color: #F1F1F1;
-    position: absolute;
-    bottom: 40px;
-    margin-left: 10%;
+    position: fixed;
+    bottom: 0;
+    margin: 15px;
     align-items: center;
-    align-self: center;
-    width: 80%;
     border-radius: 50px;
-    box-shadow: -2px -4px 13px 3px rgba(0,0,0,0.21);
+    width: 90%;
+    background-color: white;
+    padding: 15px;
+    box-shadow: -2px -4px 13px 3px rgba(0,0,0,0.05);
+}
 
+.compose ion-input {
+    margin: 10px;
+    height: 10px;
+    background-color: white;
+}
+
+.compose ion-icon {
+    font-size: 24px;
 }

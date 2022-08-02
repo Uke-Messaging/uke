@@ -10,30 +10,21 @@
 <ion-content>
 
   <ion-list lines="none">
-    <ion-item>
-      <ion-card class="sender">
+    <ion-item *ngFor="let msg of messages">
+      <ion-card [ngClass]="msg.sender.uniqueId === sender ? 'sender' : ''">
         <ion-card-content>
-            yoyo
+            {{ msg.message }}
           </ion-card-content>
         </ion-card>
-    </ion-item>
-    <ion-item>
-      <ion-card class="message">
-        <ion-card-content>
-          heyyyy what's up
-        </ion-card-content>
-      </ion-card>
     </ion-item>
   </ion-list>
 
 
-<div class="send">
-  <ion-item>
-    <ion-label position="floating">compose...</ion-label>
-    <ion-input></ion-input>
-  </ion-item>
-  <ion-button shape="round">
-    <ion-icon name="send"></ion-icon>
-  </ion-button>
+
+
+<div class="compose">
+  <ion-input placeholder="compose..."></ion-input>
+  <ion-icon color="primary" name="send"></ion-icon>
 </div>
+
 </ion-content>
