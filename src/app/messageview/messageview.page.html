@@ -8,23 +8,17 @@
 </ion-header>
 
 <ion-content>
-
   <ion-list lines="none">
     <ion-item *ngFor="let msg of messages">
       <ion-card [ngClass]="msg.sender.uniqueId === sender ? 'sender' : ''">
-        <ion-card-content>
-            {{ msg.message }}
-          </ion-card-content>
-        </ion-card>
+        <ion-card-content> {{ msg.message }} </ion-card-content>
+        <ion-card-subtitle [ngClass]="msg.sender.uniqueId !== sender ? 'time-recipient' : ''">{{ msg.time }}</ion-card-subtitle>
+      </ion-card>
     </ion-item>
   </ion-list>
 
-
-
-
-<div class="compose">
-  <ion-input placeholder="compose..."></ion-input>
-  <ion-icon color="primary" name="send"></ion-icon>
-</div>
-
+  <div class="compose">
+    <ion-input placeholder="compose..."></ion-input>
+    <ion-icon color="primary" name="send"></ion-icon>
+  </div>
 </ion-content>

@@ -37,3 +37,21 @@ ion-content {
 ion-list {
     opacity: 75%;
 }
+@font-face {
+    font-family: 'Autobus';
+    src: url('./assets/AutobusOmnibus.ttf');
+}
+
+.uke-logo {
+    font-family: 'Autobus';
+    color: #FEFFD3;
+    font-size: 36px;
+    text-align: center;
+}
+
+.uke-sub-logo {
+    font-family: 'Autobus';
+    color: #FEFFD3;
+    font-size: 16px;
+    text-align: center;
+}

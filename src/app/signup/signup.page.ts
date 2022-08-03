@@ -7,9 +7,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SignupPage implements OnInit {
 
+  login: boolean = false;
+
   constructor() { }
 
   ngOnInit() {
+  }
+
+
+  switchLogin() {
+    this.login = !this.login;
   }
 
 }

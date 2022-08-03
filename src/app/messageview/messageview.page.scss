@@ -1,40 +1,50 @@
 @import url("../../theme/variables.scss");
 
 .sender {
-    background-color: #00AE7D;
-    color: white;
-    text-align: left;
-    margin-left: 50%;
+  background-color: #00ae7d;
+  color: white;
+  text-align: left;
+  margin-left: 50%;
 }
 
 ion-card {
-    width: 55%;
-    border-radius: 16px;
+  width: 55%;
+  border-radius: 16px;
 }
 
 ion-list {
-    opacity: 100%;
+  opacity: 100%;
 }
 
 .compose {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    margin: 15px;
-    align-items: center;
-    border-radius: 50px;
-    width: 90%;
-    background-color: white;
-    padding: 15px;
-    box-shadow: -2px -4px 13px 3px rgba(0,0,0,0.05);
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  margin: 15px;
+  align-items: center;
+  border-radius: 50px;
+  width: 90%;
+  background-color: white;
+  padding: 15px;
+  box-shadow: -2px -4px 13px 3px rgba(0, 0, 0, 0.05);
 }
 
 .compose ion-input {
-    margin: 10px;
-    height: 10px;
-    background-color: white;
+  margin: 10px;
+  height: 10px;
+  background-color: white;
 }
 
 .compose ion-icon {
-    font-size: 24px;
+  font-size: 24px;
+}
+
+ion-card-subtitle {
+  color: white;
+  font-size: small;
+  margin: 10px;
+}
+
+.time-recipient {
+  color: #00ae7d;
 }

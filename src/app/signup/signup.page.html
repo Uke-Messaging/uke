@@ -1,9 +1,29 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>signup</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title class="uke-logo">UKE</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-
+  <div class="form">
+    <ion-item>
+      <ion-label position="floating">user id</ion-label>
+      <ion-input></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">password</ion-label>
+      <ion-input></ion-input>
+    </ion-item>
+    <ion-item *ngIf="!login">
+      <ion-label position="floating">re-enter password</ion-label>
+      <ion-input></ion-input>
+    </ion-item>
+    <ion-button *ngIf="!login" expand="full" color="primary">create</ion-button>
+    <ion-button *ngIf="login" expand="full" color="primary">login</ion-button>
+    <ion-button type="small" color="primary" (click)="switchLogin()">already have an account?</ion-button>
+  </div>
 </ion-content>
+
+<ion-toolbar color="primary">
+  <ion-title class="uke-sub-logo">COMPOSE YOUR MESSAGE</ion-title>
+</ion-toolbar>

@@ -22,41 +22,47 @@ export class Tab1Page {
     isOptedIn: true,
   };
 
-  sampleSentMessage: Message= {
+  sampleSentMessage: Message = {
     recipient: this.sampleRecipientUser,
     sender: this.sampleSenderUser,
     message: 'heyyy you available later?',
     hash: '0x0000000000',
-    time: "8:34"
+    time: '8:34',
   };
 
-  sampleRecievedMessage: Message= {
+  sampleRecievedMessage: Message = {
     recipient: this.sampleSenderUser,
     sender: this.sampleRecipientUser,
     message: 'i should be, yeah!',
     hash: '0x0000000000',
-    time: "8:34"
+    time: '8:34',
   };
 
   convos: Conversation[] = [
     {
       recipient: this.sampleRecipientUser,
       sender: this.sampleSenderUser,
-      messages: [this.sampleSentMessage, this.sampleRecievedMessage, this.sampleSentMessage, this.sampleRecievedMessage, this.sampleSentMessage, this.sampleRecievedMessage, this.sampleSentMessage, this.sampleRecievedMessage],
-      lastMessage: this.sampleRecievedMessage
+      messages: [
+        this.sampleSentMessage,
+        this.sampleRecievedMessage,
+        this.sampleSentMessage,
+        this.sampleRecievedMessage,
+        this.sampleSentMessage,
+        this.sampleRecievedMessage,
+        this.sampleSentMessage,
+        this.sampleRecievedMessage,
+      ],
+      lastMessage: this.sampleRecievedMessage,
     },
   ];
 
-  constructor(private router: Router) {
-  }
-
+  constructor(private router: Router) {}
 
   viewMessage(convo: Conversation) {
-
-    console.log(convo)
-    const navExtras: NavigationExtras= {
-      state: { convo }
-    }
+    console.log(convo);
+    const navExtras: NavigationExtras = {
+      state: { convo },
+    };
     this.router.navigate(['messageview'], navExtras);
   }
 }
