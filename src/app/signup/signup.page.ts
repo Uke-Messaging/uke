@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { KeyringService } from '../keyring.service';
 
 @Component({
   selector: 'app-signup',
@@ -6,17 +8,53 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./signup.page.scss'],
 })
 export class SignupPage implements OnInit {
+  loginSwitch: boolean = false;
 
-  login: boolean = false;
+  userId: string = 'sadf';
+  password: string = 'password';
+  verifyPassword: string = 'password';
+  switchText: string = 'already have an account?';
 
-  constructor() { }
-
-  ngOnInit() {
+  constructor(private keyring: KeyringService, private router: Router) {
+    this.keyring.init().then((_) => _);
   }
 
+  ngOnInit() {}
 
   switchLogin() {
-    this.login = !this.login;
+    this.loginSwitch = !this.loginSwitch;
+    if (this.loginSwitch) this.switchText = 'need to create an account?';
+    else this.switchText = 'already have an account?';
   }
 
+  async login() {
+    try {
+      const current = await this.keyring.getCurrentAccount(this.userId);
+      current.unlock(this.password);
+      if (!current.isLocked) {
+        console.log(current.address);
+        current.lock();
+        await this.router.navigate(['/tabs/tab1']);
+      }
+    } catch {
+      alert('WRONG PASSWORD FOR ACCOUNT');
+    }
+  }
+
+  async signup() {
+    if (this.password !== this.verifyPassword || this.password.length < 8) {
+      throw Error('Passwords do not match or it is not at least 8 chars');
+    }
+    try {
+      const current = await this.keyring.getCurrentAccount(this.userId);
+      alert(`Existing account ${current.meta.name} exists`);
+    } catch {
+      await this.keyring.createNewAccount(
+        this.userId,
+        this.password,
+        this.verifyPassword
+      );
+      await this.router.navigate(['/tabs/tab1']);
+    }
+  }
 }

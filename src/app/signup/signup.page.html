@@ -8,19 +8,19 @@
   <div class="form">
     <ion-item>
       <ion-label position="floating">user id</ion-label>
-      <ion-input></ion-input>
+      <ion-input [(ngModel)]="userId"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="floating">password</ion-label>
-      <ion-input></ion-input>
+      <ion-input [(ngModel)]="password" type="password"></ion-input>
     </ion-item>
-    <ion-item *ngIf="!login">
+    <ion-item *ngIf="!loginSwitch">
       <ion-label position="floating">re-enter password</ion-label>
-      <ion-input></ion-input>
+      <ion-input [(ngModel)]="verifyPassword" type="password"></ion-input>
     </ion-item>
-    <ion-button *ngIf="!login" expand="full" color="primary">create</ion-button>
-    <ion-button *ngIf="login" expand="full" color="primary">login</ion-button>
-    <ion-button type="small" color="primary" (click)="switchLogin()">already have an account?</ion-button>
+    <ion-button *ngIf="!loginSwitch" expand="full" color="primary" (click)="signup()">create</ion-button>
+    <ion-button *ngIf="loginSwitch" expand="full" color="primary" (click)="login()">login</ion-button>
+    <ion-button type="small" color="primary" (click)="switchLogin()">{{ switchText }}</ion-button>
   </div>
 </ion-content>
 

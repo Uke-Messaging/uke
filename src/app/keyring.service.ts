@@ -36,13 +36,17 @@ export class KeyringService {
   }
 
   // Creates a new account with the intent of signing and verifying transactions
-  createNewAccount(name: string, password: string, reenterPassword: string) {
+  createNewAccount(
+    name: string,
+    password: string,
+    reenterPassword: string
+  ): Promise<any> {
     if (password !== reenterPassword) {
       throw Error("Passwords don't match, please check again!");
     }
     const seed = randomAsHex(32);
     const { pair, json } = keyring.addUri(seed, password, { name }, 'ed25519');
-    this._storage?.set(name, json);
+    return this._storage?.set(name, json);
   }
 
   // Gets the user's main address / account - able to sign and verify
@@ -76,7 +80,7 @@ export class KeyringService {
     return signatureVerify(message, signature, publicKeyOrAddress).isValid;
   }
 
-  // Fetches the accounts marked as contacts
+  // Fetches the accounts marked as contacts, will load in the main page then vget the conversation for each stored contact
   getContacts(): Contact[] {
     const accounts = keyring.getAccounts();
     return accounts

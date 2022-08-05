@@ -65,14 +65,6 @@ export class Tab1Page implements OnInit {
   ];
 
   constructor(private router: Router, private keyring: KeyringService) {
-
-    keyring.init().then((_) => {
-      // keyring.createNewAccount("YAYAYA", "YESYES1", "YESYES1")
-      keyring.getCurrentAccount("YAYAYA").then((_) => {
-        _.unlock("YESYES1");
-        console.log(_.sign("WOWOWOWO"))
-      })
-    })
   }
   async ngOnInit() {}
 
