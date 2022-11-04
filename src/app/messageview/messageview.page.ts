@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { KeyringService } from '../keyring.service';
+import { KeyringService } from '../services/keyring.service';
 import { Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
-import { UkePalletService } from '../ukepallet.service';
+import { UkePalletService } from '../services/ukepallet.service';
 
 @Component({
   selector: 'app-messageview',

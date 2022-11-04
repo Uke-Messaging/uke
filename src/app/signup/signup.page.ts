@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { KeyringService } from '../keyring.service';
-import { UkePalletService } from '../ukepallet.service';
+import { KeyringService } from '../services/keyring.service';
+import { UkePalletService } from '../services/ukepallet.service';
 
 @Component({
   selector: 'app-signup',

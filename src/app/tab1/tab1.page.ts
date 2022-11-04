@@ -6,8 +6,8 @@ import { ActiveConversation, Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { User } from '../model/user.model';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { KeyringService } from '../keyring.service';
-import { UkePalletService } from '../ukepallet.service';
+import { KeyringService } from '../services/keyring.service';
+import { UkePalletService } from '../services/ukepallet.service';
 import { KeyringPair } from '@polkadot/keyring/types';
 
 @Component({

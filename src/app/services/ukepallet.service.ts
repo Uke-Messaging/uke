@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Message } from './model/message.model';
+import { Message } from '../model/message.model';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Codec } from '@polkadot/types-codec/types';
 import { hexToStr } from 'hexyjs';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { sha3_256 } from 'js-sha3';
-import { ActiveConversation } from './model/conversation.model';
-import { User } from './model/user.model';
+import { ActiveConversation } from '../model/conversation.model';
+import { User } from '../model/user.model';
 
 @Injectable({
   providedIn: 'root',

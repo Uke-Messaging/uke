@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { KeyringService } from '../keyring.service';
-import { UkePalletService } from '../ukepallet.service';
+import { KeyringService } from '../services/keyring.service';
+import { UkePalletService } from '../services/ukepallet.service';
 
 @Component({
   selector: 'app-tab2',
