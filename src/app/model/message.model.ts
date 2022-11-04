@@ -1,9 +1,14 @@
 import { User } from "./user.model";
 
 export interface Message {
-    recipient: User;
-    sender: User;
+    recipient: string;
+    sender: string;
     message: string;
     hash: string;
-    time: string;
+    time?: number | string;
+}
+
+export interface ApiMessage {
+    sender: string;
+    message: string;
 }

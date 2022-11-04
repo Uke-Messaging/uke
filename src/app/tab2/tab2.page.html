@@ -1,8 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
-    <ion-title>
-      Profile
-    </ion-title>
+    <ion-title> Profile </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,5 +10,14 @@
       <ion-title size="large">Profile</ion-title>
     </ion-toolbar>
   </ion-header>
+  <ion-input
+    [(ngModel)]="newUsername"
+    placeholder="enter new name..."
+  ></ion-input>
 
+  <ion-button (click)="register()">SET USERNAME</ion-button>
+
+  <ion-toolbar color="primary">
+    <ion-title> {{ username }} </ion-title>
+  </ion-toolbar>
 </ion-content>

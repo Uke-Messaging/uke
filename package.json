@@ -19,6 +19,7 @@
     "@angular/platform-browser": "^14.0.0",
     "@angular/platform-browser-dynamic": "^14.0.0",
     "@angular/router": "^14.0.0",
+    "@awesome-cordova-plugins/dialogs": "^5.45.0",
     "@capacitor/app": "4.0.1",
     "@capacitor/core": "4.0.1",
     "@capacitor/haptics": "4.0.1",
@@ -30,6 +31,9 @@
     "@polkadot/api": "^9.0.1",
     "@polkadot/keyring": "^10.1.2",
     "@polkadot/ui-keyring": "^2.9.3",
+    "cordova-plugin-dialogs": "^2.0.2",
+    "hexyjs": "^2.1.4",
+    "js-sha3": "^0.8.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.2.0",
     "zone.js": "~0.11.4"

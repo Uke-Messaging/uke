@@ -2,15 +2,13 @@ import '@polkadot/api-augment/substrate';
 
 import { Component, OnInit } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
-import { Conversation } from '../model/conversation.model';
+import { ActiveConversation, Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { User } from '../model/user.model';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { mnemonicGenerate } from '@polkadot/util-crypto';
-import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady } from '@polkadot/util-crypto';
-import { randomAsHex } from '@polkadot/util-crypto';
 import { KeyringService } from '../keyring.service';
+import { UkePalletService } from '../ukepallet.service';
+import { KeyringPair } from '@polkadot/keyring/types';
 
 @Component({
   selector: 'app-tab1',
@@ -18,55 +16,85 @@ import { KeyringService } from '../keyring.service';
   styleUrls: ['tab1.page.scss'],
 })
 export class Tab1Page implements OnInit {
-  sampleSenderUser: User = {
-    uniqueId: 'user1234',
-    accountId: '000000000000',
-    isOptedIn: true,
-  };
-
-  sampleRecipientUser: User = {
-    uniqueId: 'user0000',
-    accountId: '11111111111',
-    isOptedIn: true,
-  };
-
-  sampleSentMessage: Message = {
-    recipient: this.sampleRecipientUser,
-    sender: this.sampleSenderUser,
-    message: 'heyyy you available later?',
-    hash: '0x0000000000',
-    time: '8:34',
-  };
-
   sampleRecievedMessage: Message = {
-    recipient: this.sampleSenderUser,
-    sender: this.sampleRecipientUser,
+    recipient: '1',
+    sender: '2',
     message: 'i should be, yeah!',
     hash: '0x0000000000',
-    time: '8:34',
+    time: 1,
   };
 
-  convos: Conversation[] = [
-    {
-      recipient: this.sampleRecipientUser,
-      sender: this.sampleSenderUser,
-      messages: [
-        this.sampleSentMessage,
-        this.sampleRecievedMessage,
-        this.sampleSentMessage,
-        this.sampleRecievedMessage,
-        this.sampleSentMessage,
-        this.sampleRecievedMessage,
-        this.sampleSentMessage,
-        this.sampleRecievedMessage,
-      ],
-      lastMessage: this.sampleRecievedMessage,
-    },
-  ];
+  convos: Conversation[] = [];
+  currentKeypair: KeyringPair;
+  recipient: string = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
+  initialMessage: string = 'hihi';
+  currentAddress: string = '';
 
-  constructor(private router: Router, private keyring: KeyringService) {
+  constructor(
+    private router: Router,
+    private keyring: KeyringService,
+    private uke: UkePalletService
+  ) {
+    console.log('oh lawd jetson made anotha one');
   }
-  async ngOnInit() {}
+  async ngOnInit() {
+    await this.uke.init();
+    try {
+      this.currentKeypair = await this.keyring.getCurrentAccount('default');
+    } catch (_) {
+      await this.keyring.createNewAccount('default', 'default', 'default');
+      this.currentKeypair = await this.keyring.getCurrentAccount('default');
+    }
+    this.currentKeypair = await this.keyring.getCurrentAccount('default');
+
+    this.currentAddress = this.currentKeypair.address;
+    const addrs = await this.uke.getActiveConversations(
+      this.currentKeypair.address
+    );
+
+    console.log("ACTIVE", addrs);
+
+    addrs.forEach(async (addr) => {
+      const id = this.uke.generateConvoId(addr.initator, addr.recipient);
+      const msgs = await this.uke.getMessages(id);
+
+      const convo: Conversation = {
+        recipient: addr.recipient,
+        id,
+        sender: addr.initator,
+        messages: msgs,
+        lastMessage: msgs[0],
+      };
+      this.convos.push(convo);
+    });
+  }
+
+  async new() {
+    const time = Date.now();
+    const msg: Message = {
+      recipient: this.recipient,
+      sender: this.currentKeypair.address,
+      message: this.initialMessage,
+      hash: '0x0000000000',
+    };
+    this.currentKeypair.unlock('default');
+    const newActiveConvo: ActiveConversation = {
+      initator: this.currentKeypair.address,
+      recipient: this.recipient,
+    };
+    const id = this.uke.generateConvoId(newActiveConvo.initator, newActiveConvo.recipient);
+    await this.uke.sendMessage(this.currentKeypair, id, msg, time);
+    this.currentKeypair.lock();
+    const msgs = await this.uke.getMessages(id);
+    const convo: Conversation = {
+      recipient: newActiveConvo.recipient,
+      id,
+      sender: newActiveConvo.initator,
+      messages: msgs,
+      lastMessage: msgs[0],
+    };
+    this.convos.push(convo);
+  }
 
   viewMessage(convo: Conversation) {
     console.log(convo);
