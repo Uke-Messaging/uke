@@ -1,0 +1,29 @@
+ion-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+ion-content ion-toolbar {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 15px 50px 15px;
+}
+
+
+ion-content ion-toolbar p {
+    font-size: 12px;
+}
+
+ion-content ion-toolbar .address {
+    margin-top: 15px;
+    font-size: 15px;
+}
+
+ion-content ion-toolbar .address, .username {
+font-family: 'Autobus';
+color: #FDFFD2;
+}

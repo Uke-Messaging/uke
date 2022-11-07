@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar color="primary">
     <ion-title> Messages </ion-title>
     <ion-buttons slot="end">
@@ -10,18 +10,20 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Messages</ion-title>
-    </ion-toolbar>
-  </ion-header>
-  <ion-input
-    [(ngModel)]="recipient"
-    placeholder="enter new contact..."
-  ></ion-input>
-  <ion-input [(ngModel)]="initialMessage" placeholder="message..."></ion-input>
+  <div class="body-header">
+    <ion-input
+      [(ngModel)]="recipient"
+      placeholder="enter new contact..."
+    ></ion-input>
+    <ion-input
+      [(ngModel)]="initialMessage"
+      placeholder="message..."
+    ></ion-input>
+    <ion-chip color="success">Recent</ion-chip>
+  </div>
   <ion-list>
     <ion-item (click)="viewMessage(msg)" *ngFor="let msg of convos">
+      <ion-icon color="primary" name="person-circle-outline" slot="start"></ion-icon>
       <ion-label>
         <h2>
           {{ msg.recipient === currentAddress ? msg.sender : msg.recipient }}
@@ -33,7 +35,4 @@
       </ion-label>
     </ion-item>
   </ion-list>
-  <ion-toolbar color="primary">
-    <ion-title> {{ currentAddress }} </ion-title>
-  </ion-toolbar>
 </ion-content>

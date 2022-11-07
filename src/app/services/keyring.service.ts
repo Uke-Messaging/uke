@@ -10,7 +10,6 @@ import {
 import { u8aToHex } from '@polkadot/util';
 import { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
 import { Storage } from '@ionic/storage-angular';
-import { bool } from '@polkadot/types-codec';
 
 export interface Contact {
   address: string;
