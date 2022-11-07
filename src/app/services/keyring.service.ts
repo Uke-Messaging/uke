@@ -8,13 +8,26 @@ import {
   signatureVerify,
 } from '@polkadot/util-crypto';
 import { u8aToHex } from '@polkadot/util';
-import { KeyringPair } from '@polkadot/keyring/types';
+import { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
 import { Storage } from '@ionic/storage-angular';
+import { bool } from '@polkadot/types-codec';
 
 export interface Contact {
   address: string;
   publicKey: string;
   name: string;
+}
+
+export interface StoredUser {
+  keypair: KeyringPair;
+  username: string;
+  address: string;
+}
+
+export interface StoredUserSerialized {
+  keypairJson: KeyringPair$Json;
+  username: string;
+  address: string;
 }
 
 @Injectable({
@@ -23,6 +36,11 @@ export interface Contact {
 export class KeyringService {
   private _storage: Storage | null = null;
 
+  private static MAIN_ACCOUNT = 'MAIN_ACCOUNT';
+  private static AUTHENTICATED = 'AUTHENTICATED';
+  private isAuthenticated: boolean = false;
+  private currentlyStoredUser
+
   constructor(private storage: Storage) {}
 
   async init() {
@@ -30,14 +48,13 @@ export class KeyringService {
     if (ready) {
       keyring.loadAll({ ss58Format: 42, type: 'ed25519' });
     }
-
     const storage = await this.storage.create();
     this._storage = storage;
   }
 
   // Creates a new account with the intent of signing and verifying transactions
   createNewAccount(
-    name: string,
+    username: string,
     password: string,
     reenterPassword: string
   ): Promise<any> {
@@ -45,18 +62,65 @@ export class KeyringService {
       throw Error("Passwords don't match, please check again!");
     }
     const seed = randomAsHex(32);
-    const { pair, json } = keyring.addUri(seed, password, { name }, 'ed25519');
-    return this._storage?.set(name, json);
+    const { pair, json } = keyring.addUri(
+      seed,
+      password,
+      { name: KeyringService.MAIN_ACCOUNT },
+      'ed25519'
+    );
+
+    const storedUserSerialized: StoredUserSerialized = {
+      keypairJson: json,
+      username,
+      address: pair.address,
+    };
+
+    console.log(storedUserSerialized);
+    return this._storage?.set(
+      KeyringService.MAIN_ACCOUNT,
+      storedUserSerialized
+    );
   }
 
+  // FOR AUTH, we want to check for an existing account. Doesn't exist? Make an ew one. Does exist? Attempt unlock. Unlock successful? go to home, is authenticated.  Un? Throw error
   // Gets the user's main address / account - able to sign and verify
   // For now uses contact, later will use a custom data structure w the private key for signing purposes
-  async getCurrentAccount(name: string): Promise<KeyringPair> {
-    const raw = await this._storage.get(name);
-    return keyring.createFromJson(raw);
+  async loadAccount(): Promise<StoredUser> {
+    const raw = await this._storage.get(KeyringService.MAIN_ACCOUNT);
+    if (raw === undefined || raw === null)
+      throw Error('Account does not exist - create on!');
+    const serialized: StoredUserSerialized = raw as StoredUserSerialized;
+    const keypair = keyring.createFromJson(serialized.keypairJson);
+    return {
+      username: serialized.username,
+      address: serialized.address,
+      keypair,
+    };
   }
 
-  // TODO: ensure a message can be properly signed, and the signature is sent for future identity verification
+  // Successfully unlock account upon login to ensure user authentication (PLACEHOLDER till we implement in pallet)
+  async auth(password: string, keypair: KeyringPair): Promise<boolean> {
+   const signature = await this.unlockAndSignPayload(keypair, password, KeyringService.AUTHENTICATED);
+    await this.verifyPayload(KeyringService.AUTHENTICATED, signature, keypair.address);
+    this.isAuthenticated = true;
+    await this._storage?.set(KeyringService.AUTHENTICATED, true);
+    return this.isAuthenticated;
+  }
+
+  async getAuthenticationStatus(): Promise<boolean> {
+    this.isAuthenticated = await this._storage?.get(
+      KeyringService.AUTHENTICATED
+    );
+    return this.isAuthenticated;
+  }
+
+  // Sets user as not authenticated
+  async logOut() {
+    this.isAuthenticated = false;
+    await this._storage?.set(KeyringService.AUTHENTICATED, false);
+  }
+
+  // Unlock and sign a payload
   async unlockAndSignPayload(
     pair: KeyringPair,
     password: string,
@@ -71,16 +135,17 @@ export class KeyringService {
     throw Error('Bad password! Not unlocked.');
   }
 
-  // TODO: might revisit, used to verify a message's integrity
+  //  TODO: Implement encrypted messaging.
+  //  Used to verify an encrypted message's integrity
   async verifyPayload(
-    message: string,
-    signature: string,
+    message: string | Uint8Array,
+    signature: string | Uint8Array,
     publicKeyOrAddress: string
   ): Promise<boolean> {
     return signatureVerify(message, signature, publicKeyOrAddress).isValid;
   }
 
-  // Fetches the accounts marked as contacts, will load in the main page then vget the conversation for each stored contact
+  // Fetches the accounts marked as contacts
   getContacts(): Contact[] {
     const accounts = keyring.getAccounts();
     return accounts

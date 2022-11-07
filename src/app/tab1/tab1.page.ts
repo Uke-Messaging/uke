@@ -39,29 +39,19 @@ export class Tab1Page implements OnInit {
   }
   async ngOnInit() {
     await this.uke.init();
-    try {
-      this.currentKeypair = await this.keyring.getCurrentAccount('default');
-    } catch (_) {
-      await this.keyring.createNewAccount('default', 'default', 'default');
-      this.currentKeypair = await this.keyring.getCurrentAccount('default');
-    }
-    this.currentKeypair = await this.keyring.getCurrentAccount('default');
-
+    this.currentKeypair = (await this.keyring.loadAccount()).keypair;
     this.currentAddress = this.currentKeypair.address;
     const addrs = await this.uke.getActiveConversations(
       this.currentKeypair.address
     );
-
-    console.log("ACTIVE", addrs);
-
     addrs.forEach(async (addr) => {
-      const id = this.uke.generateConvoId(addr.initator, addr.recipient);
+      console.log(addr.initiator, addr.recipient)
+      const id = this.uke.generateConvoId(addr.initiator, addr.recipient);
       const msgs = await this.uke.getMessages(id);
-
       const convo: Conversation = {
         recipient: addr.recipient,
         id,
-        sender: addr.initator,
+        sender: addr.initiator,
         messages: msgs,
         lastMessage: msgs[0],
       };
@@ -69,30 +59,27 @@ export class Tab1Page implements OnInit {
     });
   }
 
+  // TODO: To active convo check to make sure one doesnt already exist for that id.
   async new() {
     const time = Date.now();
+    const local = new Date(time).toLocaleTimeString('default');
     const msg: Message = {
       recipient: this.recipient,
       sender: this.currentKeypair.address,
       message: this.initialMessage,
+      time: local,
       hash: '0x0000000000',
     };
-    this.currentKeypair.unlock('default');
-    const newActiveConvo: ActiveConversation = {
-      initator: this.currentKeypair.address,
-      recipient: this.recipient,
-    };
-    const id = this.uke.generateConvoId(newActiveConvo.initator, newActiveConvo.recipient);
-    await this.uke.sendMessage(this.currentKeypair, id, msg, time);
+    const id = this.uke.generateConvoId(this.currentKeypair.address, this.recipient);
     this.currentKeypair.lock();
-    const msgs = await this.uke.getMessages(id);
     const convo: Conversation = {
-      recipient: newActiveConvo.recipient,
+      recipient: this.recipient,
       id,
-      sender: newActiveConvo.initator,
-      messages: msgs,
-      lastMessage: msgs[0],
+      sender: this.currentKeypair.address,
+      messages: [msg],
+      lastMessage: msg,
     };
+    await this.uke.sendMessage(this.currentKeypair, id, 'password', msg, time);
     this.convos.push(convo);
   }
 
@@ -101,6 +88,7 @@ export class Tab1Page implements OnInit {
     const navExtras: NavigationExtras = {
       state: { convo },
     };
+    //TODO: replace this with dedicated service for convo passing
     this.router.navigate(['messageview'], navExtras);
   }
 }

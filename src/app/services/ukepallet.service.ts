@@ -46,9 +46,7 @@ export class UkePalletService {
   }
 
   async getActiveConversations(sender?: string): Promise<ActiveConversation[]> {
-    const convoAddrs = await this.api.query.uke.activeConversations(
-      sender
-    );
+    const convoAddrs = await this.api.query.uke.activeConversations(sender);
     return JSON.parse(convoAddrs.toString());
   }
 
@@ -63,17 +61,23 @@ export class UkePalletService {
 
   // Assigns a new username and id to the identity mapping
   async assignUsername(username: string, signer: KeyringPair): Promise<any> {
+    console.log(this.api)
     return await this.api.tx.uke.register(username).signAndSend(signer);
   }
 
   async sendMessage(
     signer: KeyringPair,
     id: string,
+    password: string,
     message: Message,
     time: number
   ): Promise<any> {
-    return await this.api.tx.uke
+    console.log("sent message id", id);
+    signer.unlock(password);
+    await this.api.tx.uke
       .storeMessage(message.message, time, id, message.recipient)
       .signAndSend(signer);
+    signer.lock();
+    return Promise.resolve(true);
   }
 }

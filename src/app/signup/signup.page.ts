@@ -16,11 +16,15 @@ export class SignupPage implements OnInit {
   verifyPassword: string = 'password';
   switchText: string = 'already have an account?';
 
-  constructor(private keyring: KeyringService, private router: Router, private uke: UkePalletService) {
-    this.keyring.init().then((_) => _);
-  }
+  constructor(
+    private keyring: KeyringService,
+    private router: Router,
+    private uke: UkePalletService
+  ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.uke.init();
+  }
 
   switchLogin() {
     this.loginSwitch = !this.loginSwitch;
@@ -30,15 +34,13 @@ export class SignupPage implements OnInit {
 
   async login() {
     try {
-      const current = await this.keyring.getCurrentAccount(this.userId);
-      current.unlock(this.password);
-      if (!current.isLocked) {
-        console.log(current.address);
-        current.lock();
-        await this.router.navigate(['/tabs/tab1']);
-      }
+      const keypair = await this.keyring.loadAccount();
+      console.log(keypair);
+      await this.keyring.auth(this.password, keypair.keypair);
+      await this.router.navigate(['/tabs/tab1']);
     } catch {
-      alert('WRONG PASSWORD FOR ACCOUNT');
+      console.log('YEAH');
+      alert('UNABLE TO AUTHENTICATE USER, BAD PASSWORD OR NOT CREATED.');
     }
   }
 
@@ -47,18 +49,19 @@ export class SignupPage implements OnInit {
       throw Error('Passwords do not match or it is not at least 8 chars');
     }
     try {
-      const current = await this.keyring.getCurrentAccount(this.userId);
-      alert(`Existing account ${current.meta.name} exists`);
+      const current = await this.keyring.loadAccount();
+      alert(`Existing account ${current.keypair.meta.name} exists`);
     } catch {
       await this.keyring.createNewAccount(
         this.userId,
         this.password,
         this.verifyPassword
       );
-      const current = await this.keyring.getCurrentAccount(this.userId);
-      current.unlock(this.password);
-      await this.uke.assignUsername(this.userId, current);
-      current.lock();
+      const current = await this.keyring.loadAccount();
+      current.keypair.unlock(this.password);
+      await this.uke.assignUsername(this.userId, current.keypair);
+      current.keypair.lock();
+      await this.keyring.auth(this.password, current.keypair);
       await this.router.navigate(['/tabs/tab1']);
     }
   }

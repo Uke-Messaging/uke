@@ -5,6 +5,7 @@ import { KeyringService } from '../services/keyring.service';
 import { Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { UkePalletService } from '../services/ukepallet.service';
+import { stringify } from 'querystring';
 
 @Component({
   selector: 'app-messageview',
@@ -29,21 +30,13 @@ export class MessageviewPage implements OnInit {
     this.route.queryParams.subscribe((params) => {
       if (this.router.getCurrentNavigation().extras.state) {
         this.convo = this.router.getCurrentNavigation().extras.state.convo;
-        this.sender = this.convo.sender !== this.currentKeypair.address ? this.convo.sender : this.currentKeypair.address;
-        this.recipient = this.convo.recipient === this.currentKeypair.address ? this.sender : this.convo.recipient;
-        this.messages = this.convo.messages;
-
-        console.log('CONVO RECIPIENT', this.recipient);
-        console.log('CONVO SENDER', this.sender);
       }
     });
   }
 
   async send() {
-    
     const time = Date.now();
     const local = new Date(time).toLocaleTimeString('default');
-
     const msg: Message = {
       recipient: this.recipient,
       sender: this.currentKeypair.address,
@@ -51,25 +44,20 @@ export class MessageviewPage implements OnInit {
       time: local,
       hash: '0x0000000000',
     };
-
-    console.log('NEW MESSAGE', msg);
-    this.currentKeypair.unlock('default');
-    await this.uke.sendMessage(this.currentKeypair, this.convo.id, msg, time);
-    this.currentKeypair.lock();
+    await this.uke.sendMessage(this.currentKeypair, this.convo.id, 'password', msg, time);
     this.messages.push(msg);
     this.message = '';
   }
 
   async ngOnInit() {
-    try {
-      this.currentKeypair = await this.keyring.getCurrentAccount('default');
-    } catch (_) {
-      await this.keyring.createNewAccount('default', 'default', 'default');
-      this.currentKeypair = await this.keyring.getCurrentAccount('default');
-    }
-
+    this.currentKeypair = await (await this.keyring.loadAccount()).keypair;
+    console.log("CURRENT ADDRESS: ", this.currentKeypair.address);
     this.currentAddress = this.currentKeypair.address;
+    this.sender = this.currentAddress 
+    this.recipient = this.convo.recipient === this.currentKeypair.address ? this.sender : this.convo.recipient;
+    this.messages = this.convo.messages;
     const msgs = await this.uke.getMessages(this.convo.id);
+    console.log(msgs);
     this.messages = msgs;
     this.uke.api.query.uke.conversations(this.convo.id, async (v) => {
       const newMsgs = this.uke.parseMessages(v);

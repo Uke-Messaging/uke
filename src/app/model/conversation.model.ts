@@ -10,6 +10,6 @@ export interface Conversation {
 }
 
 export interface ActiveConversation {
-  initator: string;
+  initiator: string;
   recipient: string;
 }
