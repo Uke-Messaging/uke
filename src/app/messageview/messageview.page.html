@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title> {{ recipient }} </ion-title>
+   <ion-title>{{ recipient.username }}</ion-title>
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
@@ -12,7 +12,10 @@
     <ion-item *ngFor="let msg of messages">
       <ion-card [ngClass]="msg.sender == currentAddress ? 'sender' : ''">
         <ion-card-content> {{ msg.message }} </ion-card-content>
-        <ion-card-subtitle [ngClass]="msg.sender !== currentAddress ? 'time-recipient' : ''">{{ msg.time }}</ion-card-subtitle>
+        <ion-card-subtitle
+          [ngClass]="msg.sender !== currentAddress ? 'time-recipient' : ''"
+          >{{ msg.time }}</ion-card-subtitle
+        >
       </ion-card>
     </ion-item>
   </ion-list>

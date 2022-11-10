@@ -4,11 +4,12 @@ import { Component, OnInit } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { ActiveConversation, Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
-import { User } from '../model/user.model';
-import { ApiPromise, WsProvider } from '@polkadot/api';
+import { StoredUser, User } from '../model/user.model';
 import { KeyringService } from '../services/keyring.service';
 import { UkePalletService } from '../services/ukepallet.service';
 import { KeyringPair } from '@polkadot/keyring/types';
+import { ConversationService } from '../services/conversation.service';
+import { NotifService } from '../services/notif.service';
 
 @Component({
   selector: 'app-tab1',
@@ -25,70 +26,112 @@ export class Tab1Page implements OnInit {
   };
 
   convos: Conversation[] = [];
+  convoIds: string[] = [];
   currentKeypair: KeyringPair;
-  recipient: string = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
+  recipient: string = 'badery';
   initialMessage: string = 'hihi';
   currentAddress: string = '';
+  storedUser: StoredUser;
 
   constructor(
     private router: Router,
     private keyring: KeyringService,
-    private uke: UkePalletService
-  ) {
-    console.log('oh lawd jetson made anotha one');
-  }
+    private uke: UkePalletService,
+    private conversationService: ConversationService,
+    private notifService: NotifService
+  ) {}
+
   async ngOnInit() {
     await this.uke.init();
-    this.currentKeypair = (await this.keyring.loadAccount()).keypair;
+    this.storedUser = await this.keyring.loadAccount();
+    this.currentKeypair = this.storedUser.keypair;
+    if (this.keyring.getKeypairLockStatus()) {
+      await this.notifService.askForPasswordAlert(this.currentKeypair);
+    }
     this.currentAddress = this.currentKeypair.address;
     const addrs = await this.uke.getActiveConversations(
       this.currentKeypair.address
     );
-    addrs.forEach(async (addr) => {
-      console.log(addr.initiator, addr.recipient)
-      const id = this.uke.generateConvoId(addr.initiator, addr.recipient);
-      const msgs = await this.uke.getMessages(id);
-      const convo: Conversation = {
-        recipient: addr.recipient,
-        id,
-        sender: addr.initiator,
-        messages: msgs,
-        lastMessage: msgs[0],
-      };
-      this.convos.push(convo);
-    });
+    this.convos = await this.uke.getConversationsFromActive(addrs);
+    this.convoIds = this.convos.map((c) => c.id);
+    console.log(this.convos);
+    this.convos.forEach((convo) =>
+    // need to find an efficient way to listen to each id on its own stream, and act accordingly
+      this.uke
+        .watchIncomingMessages(this.convoIds, this.currentAddress)
+        .subscribe(async (msg) => {
+          console.log(msg);
+          await this.notifService.showNotif(
+            `${convo.sender.username}: ${msg.message}`
+          );
+        })
+    );
+
+    this.uke
+      .watchIncomingConversations(this.currentAddress)
+      .subscribe(async (_) => {
+        const convo = await this.uke.getConversationFromActive(_);
+        if (!this.convoIds.includes(convo.id)) {
+          this.convos.push(convo);
+        }
+      });
   }
 
-  // TODO: To active convo check to make sure one doesnt already exist for that id.
   async new() {
     const time = Date.now();
     const local = new Date(time).toLocaleTimeString('default');
-    const msg: Message = {
-      recipient: this.recipient,
-      sender: this.currentKeypair.address,
-      message: this.initialMessage,
-      time: local,
-      hash: '0x0000000000',
-    };
-    const id = this.uke.generateConvoId(this.currentKeypair.address, this.recipient);
-    this.currentKeypair.lock();
-    const convo: Conversation = {
-      recipient: this.recipient,
-      id,
-      sender: this.currentKeypair.address,
-      messages: [msg],
-      lastMessage: msg,
-    };
-    await this.uke.sendMessage(this.currentKeypair, id, 'password', msg, time);
-    this.convos.push(convo);
+
+    try {
+      const recipientUserInfo = await this.uke.getUserInfo(this.recipient);
+      const senderUserInfo = await this.uke.getUserInfo(
+        this.storedUser.username
+      );
+
+      const msg: Message = {
+        recipient: recipientUserInfo.accountId,
+        sender: this.currentKeypair.address,
+        message: this.initialMessage,
+        time: local,
+        hash: '0x0000000000',
+      };
+
+      const id = this.uke.generateConvoId(
+        this.currentKeypair.address,
+        recipientUserInfo.accountId
+      );
+
+      this.currentKeypair.lock();
+      const convo: Conversation = {
+        recipient: recipientUserInfo,
+        id,
+        sender: senderUserInfo,
+        messages: [msg],
+        lastMessage: msg,
+      };
+      const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
+      console.log(authenticatedPair);
+      await this.uke.sendMessage(
+        authenticatedPair,
+        id,
+        msg,
+        time,
+        senderUserInfo.username,
+        recipientUserInfo.username
+      );
+      this.convos.push(convo);
+      this.keyring.setNewContact({
+        address: recipientUserInfo.accountId,
+        name: recipientUserInfo.username,
+      });
+    } catch (_) {
+      this.notifService.generalErrorAlert(
+        `User ${this.recipient} does not exist!`
+      );
+    }
   }
 
   viewMessage(convo: Conversation) {
-    console.log(convo);
-    const navExtras: NavigationExtras = {
-      state: { convo },
-    };
-    //TODO: replace this with dedicated service for convo passing
-    this.router.navigate(['messageview'], navExtras);
+    this.conversationService.selectConversation(convo);
+    this.router.navigate(['messageview']);
   }
 }

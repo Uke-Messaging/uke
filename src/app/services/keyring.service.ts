@@ -10,24 +10,7 @@ import {
 import { u8aToHex } from '@polkadot/util';
 import { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
 import { Storage } from '@ionic/storage-angular';
-
-export interface Contact {
-  address: string;
-  publicKey: string;
-  name: string;
-}
-
-export interface StoredUser {
-  keypair: KeyringPair;
-  username: string;
-  address: string;
-}
-
-export interface StoredUserSerialized {
-  keypairJson: KeyringPair$Json;
-  username: string;
-  address: string;
-}
+import { Contact, StoredUser, StoredUserSerialized } from '../model/user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -37,8 +20,9 @@ export class KeyringService {
 
   private static MAIN_ACCOUNT = 'MAIN_ACCOUNT';
   private static AUTHENTICATED = 'AUTHENTICATED';
+  private static CONTACT = 'CONTACTS';
   private isAuthenticated: boolean = false;
-  private currentlyStoredUser
+  private currentlyStoredUser: KeyringPair;
 
   constructor(private storage: Storage) {}
 
@@ -49,6 +33,13 @@ export class KeyringService {
     }
     const storage = await this.storage.create();
     this._storage = storage;
+
+    if (
+      (await storage.get(KeyringService.CONTACT)) == undefined ||
+      (await storage.get(KeyringService.CONTACT)) == null
+    ) {
+      await this.storage.set(KeyringService.CONTACT, []);
+    }
   }
 
   // Creates a new account with the intent of signing and verifying transactions
@@ -81,9 +72,6 @@ export class KeyringService {
     );
   }
 
-  // FOR AUTH, we want to check for an existing account. Doesn't exist? Make an ew one. Does exist? Attempt unlock. Unlock successful? go to home, is authenticated.  Un? Throw error
-  // Gets the user's main address / account - able to sign and verify
-  // For now uses contact, later will use a custom data structure w the private key for signing purposes
   async loadAccount(): Promise<StoredUser> {
     const raw = await this._storage.get(KeyringService.MAIN_ACCOUNT);
     if (raw === undefined || raw === null)
@@ -97,12 +85,28 @@ export class KeyringService {
     };
   }
 
-  // Successfully unlock account upon login to ensure user authentication (PLACEHOLDER till we implement in pallet)
+  loadAuthenticatedKeypair(): KeyringPair {
+    return this.currentlyStoredUser;
+  }
+
+  // Successfully unlock account upon login to ensure user authentication
   async auth(password: string, keypair: KeyringPair): Promise<boolean> {
-   const signature = await this.unlockAndSignPayload(keypair, password, KeyringService.AUTHENTICATED);
-    await this.verifyPayload(KeyringService.AUTHENTICATED, signature, keypair.address);
+    console.log(keypair)
+    console.log(password)
+    const signature = await this.unlockAndSignPayload(
+      keypair,
+      password,
+      KeyringService.AUTHENTICATED
+    );
+    await this.verifyPayload(
+      KeyringService.AUTHENTICATED,
+      signature,
+      keypair.address
+    );
     this.isAuthenticated = true;
     await this._storage?.set(KeyringService.AUTHENTICATED, true);
+    this.currentlyStoredUser = keypair;
+    this.currentlyStoredUser.unlock(password);
     return this.isAuthenticated;
   }
 
@@ -111,6 +115,12 @@ export class KeyringService {
       KeyringService.AUTHENTICATED
     );
     return this.isAuthenticated;
+  }
+
+  getKeypairLockStatus(): boolean {
+    return this.currentlyStoredUser === undefined
+      ? true
+      : this.currentlyStoredUser.isLocked;
   }
 
   // Sets user as not authenticated
@@ -142,6 +152,15 @@ export class KeyringService {
     publicKeyOrAddress: string
   ): Promise<boolean> {
     return signatureVerify(message, signature, publicKeyOrAddress).isValid;
+  }
+
+  // Adds a new contact to local storage
+  async setNewContact(contact: Contact): Promise<any> {
+    const rawContacts = (await this._storage.get(
+      KeyringService.CONTACT
+    )) as Contact[];
+    rawContacts.push(contact);
+    return await this._storage?.set(KeyringService.CONTACT, rawContacts);
   }
 
   // Fetches the accounts marked as contacts

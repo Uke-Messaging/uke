@@ -1,11 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title> Messages </ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="new()"
-        ><ion-icon name="add-circle-outline"></ion-icon
-      ></ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -14,19 +9,27 @@
     <ion-input
       [(ngModel)]="recipient"
       placeholder="enter new contact..."
+      color="primary"
     ></ion-input>
-    <ion-input
-      [(ngModel)]="initialMessage"
-      placeholder="message..."
-    ></ion-input>
+    <div class="new-message">
+      <ion-input
+        [(ngModel)]="initialMessage"
+        placeholder="message..."
+      ></ion-input>
+      <ion-button size="small" (click)="new()">new</ion-button>
+    </div>
     <ion-chip color="success">Recent</ion-chip>
   </div>
   <ion-list>
     <ion-item (click)="viewMessage(msg)" *ngFor="let msg of convos">
-      <ion-icon color="primary" name="person-circle-outline" slot="start"></ion-icon>
+      <ion-icon
+        color="primary"
+        name="person-circle-outline"
+        slot="start"
+      ></ion-icon>
       <ion-label>
         <h2>
-          {{ msg.recipient === currentAddress ? msg.sender : msg.recipient }}
+          {{ msg.recipient.accountId === currentAddress ? msg.sender.username : msg.recipient.username }}
         </h2>
         <p>{{ msg.lastMessage.message }}</p>
       </ion-label>

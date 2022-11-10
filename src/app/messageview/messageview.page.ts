@@ -6,6 +6,9 @@ import { Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { UkePalletService } from '../services/ukepallet.service';
 import { stringify } from 'querystring';
+import { ConversationService } from '../services/conversation.service';
+import { User } from '../model/user.model';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-messageview',
@@ -13,8 +16,8 @@ import { stringify } from 'querystring';
   styleUrls: ['./messageview.page.scss'],
 })
 export class MessageviewPage implements OnInit {
-  recipient: string = '';
-  sender: string = '';
+  recipient: User;
+  sender: User;
   messages: Message[] = [];
   message: string = '';
   currentKeypair: KeyringPair;
@@ -22,39 +25,71 @@ export class MessageviewPage implements OnInit {
   convo: Conversation;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
     private keyring: KeyringService,
-    private uke: UkePalletService
-  ) {
-    this.route.queryParams.subscribe((params) => {
-      if (this.router.getCurrentNavigation().extras.state) {
-        this.convo = this.router.getCurrentNavigation().extras.state.convo;
-      }
-    });
-  }
+    private uke: UkePalletService,
+    private conversationService: ConversationService,
+    private alertController: AlertController
+  ) {}
 
   async send() {
     const time = Date.now();
     const local = new Date(time).toLocaleTimeString('default');
     const msg: Message = {
-      recipient: this.recipient,
+      recipient: this.recipient.accountId,
       sender: this.currentKeypair.address,
       message: this.message,
       time: local,
       hash: '0x0000000000',
     };
-    await this.uke.sendMessage(this.currentKeypair, this.convo.id, 'password', msg, time);
+    const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
+
+    await this.uke.sendMessage(
+      authenticatedPair,
+      this.convo.id,
+      msg,
+      time,
+      this.sender.username,
+      this.recipient.username
+    );
     this.messages.push(msg);
     this.message = '';
   }
 
+  async askForPasswordAlert() {
+    const alert = await this.alertController.create({
+      header: 'Please enter your info',
+      buttons: [
+        {
+          text: 'Done',
+          handler: (password) =>
+            this.keyring.auth(password, this.currentKeypair),
+        },
+      ],
+      inputs: [
+        {
+          placeholder: 'Name',
+          type: 'password',
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
   async ngOnInit() {
+    if (this.keyring.getKeypairLockStatus()) {
+      await this.askForPasswordAlert();
+    }
+
+    this.convo = this.conversationService.getSelectedConversation();
+    this.recipient = this.convo.recipient;
     this.currentKeypair = await (await this.keyring.loadAccount()).keypair;
-    console.log("CURRENT ADDRESS: ", this.currentKeypair.address);
     this.currentAddress = this.currentKeypair.address;
-    this.sender = this.currentAddress 
-    this.recipient = this.convo.recipient === this.currentKeypair.address ? this.sender : this.convo.recipient;
+    this.sender = this.convo.sender;
+    this.recipient =
+      this.convo.recipient.accountId === this.currentKeypair.address
+        ? this.sender
+        : this.convo.recipient;
     this.messages = this.convo.messages;
     const msgs = await this.uke.getMessages(this.convo.id);
     console.log(msgs);
