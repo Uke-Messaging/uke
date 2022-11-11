@@ -7,7 +7,8 @@ import {
   randomAsHex,
   signatureVerify,
 } from '@polkadot/util-crypto';
-import { u8aToHex } from '@polkadot/util';
+import { u8aToHex, stringToU8a, u8aToString } from '@polkadot/util';
+import { naclEncrypt, naclDecrypt } from '@polkadot/util-crypto';
 import { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
 import { Storage } from '@ionic/storage-angular';
 import { Contact, StoredUser, StoredUserSerialized } from '../model/user.model';
@@ -91,8 +92,8 @@ export class KeyringService {
 
   // Successfully unlock account upon login to ensure user authentication
   async auth(password: string, keypair: KeyringPair): Promise<boolean> {
-    console.log(keypair)
-    console.log(password)
+    console.log(keypair);
+    console.log(password);
     const signature = await this.unlockAndSignPayload(
       keypair,
       password,
@@ -127,6 +128,18 @@ export class KeyringService {
   async logOut() {
     this.isAuthenticated = false;
     await this._storage?.set(KeyringService.AUTHENTICATED, false);
+  }
+
+  decrypt(data: string, senderPublicKey: string, keypair: KeyringPair): string {
+    return u8aToString(keypair.decryptMessage(data, senderPublicKey));
+  }
+
+  encrypt(
+    data: string,
+    recipientPublicKey: string,
+    keypair: KeyringPair
+  ): string {
+    return u8aToString(keypair.encryptMessage(data, recipientPublicKey));
   }
 
   // Unlock and sign a payload

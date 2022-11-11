@@ -54,17 +54,16 @@ export class Tab1Page implements OnInit {
     );
     this.convos = await this.uke.getConversationsFromActive(addrs);
     this.convoIds = this.convos.map((c) => c.id);
-    console.log(this.convos);
-    this.convos.forEach((convo) =>
-    // need to find an efficient way to listen to each id on its own stream, and act accordingly
-      this.uke
-        .watchIncomingMessages(this.convoIds, this.currentAddress)
-        .subscribe(async (msg) => {
-          console.log(msg);
-          await this.notifService.showNotif(
-            `${convo.sender.username}: ${msg.message}`
-          );
-        })
+    console.log(this.convoIds);
+
+    const messageListener = this.uke.watchIncomingMessages(
+      this.convoIds,
+      this.currentAddress
+    );
+
+    let messageSubscription = messageListener.subscribe(
+      async (msg) =>
+        await this.notifService.showNotif(` New message: ${msg.message}`)
     );
 
     this.uke
@@ -72,7 +71,13 @@ export class Tab1Page implements OnInit {
       .subscribe(async (_) => {
         const convo = await this.uke.getConversationFromActive(_);
         if (!this.convoIds.includes(convo.id)) {
+          messageSubscription.unsubscribe();
           this.convos.push(convo);
+          this.convoIds.push(convo.id);
+          messageSubscription = messageListener.subscribe(
+            async (msg) =>
+              await this.notifService.showNotif(` New message: ${msg.message}`)
+          );
         }
       });
   }

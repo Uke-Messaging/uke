@@ -120,12 +120,11 @@ export class UkePalletService {
   ): Observable<Message> {
     return new Observable((subscriber) => {
       this.api.query.uke.conversations.multi(id, async (v) => {
-        console.log(v);
-        // const newMsgs = this.parseMessages(v);
-        // const latest = newMsgs.pop();
-        // if (address !== latest.sender) {
-        //   subscriber.next(latest);
-        // }
+       const messages = v.map((v) => this.parseMessages(v));
+        const latest = messages.pop().pop();
+        if (address !== latest.sender) {
+          subscriber.next(latest);
+        }
       });
     });
   }
