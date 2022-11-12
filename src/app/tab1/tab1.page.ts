@@ -41,11 +41,9 @@ export class Tab1Page implements OnInit {
     await this.uke.init();
     this.storedUser = await this.keyring.loadAccount();
     this.currentKeypair = this.storedUser.keypair;
-    await this.keyring.auth('password', this.storedUser.keypair);
     if (this.keyring.getKeypairLockStatus()) {
       await this.notifService.askForPasswordAlert(this.currentKeypair);
     }
-
     this.currentAddress = this.currentKeypair.address;
     const addrs = await this.uke.getActiveConversations(
       this.currentKeypair.address
