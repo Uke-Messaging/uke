@@ -4,14 +4,15 @@ import { Injectable } from '@angular/core';
 import { keyring } from '@polkadot/ui-keyring';
 import {
   cryptoWaitReady,
+  decodeAddress,
   randomAsHex,
   signatureVerify,
 } from '@polkadot/util-crypto';
 import { u8aToHex, stringToU8a, u8aToString } from '@polkadot/util';
-import { naclEncrypt, naclDecrypt } from '@polkadot/util-crypto';
-import { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
+import { KeyringPair } from '@polkadot/keyring/types';
 import { Storage } from '@ionic/storage-angular';
 import { Contact, StoredUser, StoredUserSerialized } from '../model/user.model';
+import { Message } from '../model/message.model';
 
 @Injectable({
   providedIn: 'root',
@@ -130,16 +131,28 @@ export class KeyringService {
     await this._storage?.set(KeyringService.AUTHENTICATED, false);
   }
 
-  decrypt(data: string, senderPublicKey: string, keypair: KeyringPair): string {
-    return u8aToString(keypair.decryptMessage(data, senderPublicKey));
+  decrypt(data: Uint8Array | string, recipientAddress: string): string {
+    const keypair = this.loadAuthenticatedKeypair();
+    const publicKey = decodeAddress(recipientAddress);
+    return u8aToString(keypair.decryptMessage(data, publicKey));
   }
 
-  encrypt(
-    data: string,
-    recipientPublicKey: string,
-    keypair: KeyringPair
-  ): string {
-    return u8aToString(keypair.encryptMessage(data, recipientPublicKey));
+  encrypt(data: string, recipientAddress: string): Uint8Array {
+    const keypair = this.loadAuthenticatedKeypair();
+    const publicKey = decodeAddress(recipientAddress);
+    return keypair.encryptMessage(data, publicKey);
+  }
+
+  decryptMessage(msg: Message, address: string): Message {
+    const recipient = address === msg.sender ? msg.recipient : msg.sender;
+    const decrypted = this.decrypt(msg.message, recipient);
+    return {
+      recipient: msg.recipient,
+      sender: msg.sender,
+      time: msg.time,
+      message: decrypted,
+      hash: '',
+    };
   }
 
   // Unlock and sign a payload
@@ -157,8 +170,6 @@ export class KeyringService {
     throw Error('Bad password! Not unlocked.');
   }
 
-  //  TODO: Implement encrypted messaging.
-  //  Used to verify an encrypted message's integrity
   async verifyPayload(
     message: string | Uint8Array,
     signature: string | Uint8Array,

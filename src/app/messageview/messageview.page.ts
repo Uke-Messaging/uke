@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { KeyringService } from '../services/keyring.service';
 import { Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { UkePalletService } from '../services/ukepallet.service';
-import { stringify } from 'querystring';
 import { ConversationService } from '../services/conversation.service';
 import { User } from '../model/user.model';
 import { AlertController } from '@ionic/angular';
+import { u8aToHex } from '@polkadot/util';
 
 @Component({
   selector: 'app-messageview',
@@ -34,10 +33,11 @@ export class MessageviewPage implements OnInit {
   async send() {
     const time = Date.now();
     const local = new Date(time).toLocaleTimeString('default');
+    const encryptedMessage = this.keyring.encrypt(this.message, this.recipient.accountId);
     const msg: Message = {
       recipient: this.recipient.accountId,
       sender: this.currentKeypair.address,
-      message: this.message,
+      message: u8aToHex(encryptedMessage),
       time: local,
       hash: '0x0000000000',
     };
@@ -51,7 +51,7 @@ export class MessageviewPage implements OnInit {
       this.sender.username,
       this.recipient.username
     );
-    this.messages.push(msg);
+    this.messages.push(this.keyring.decryptMessage(msg, this.currentAddress));
     this.message = '';
   }
 
@@ -91,11 +91,11 @@ export class MessageviewPage implements OnInit {
         ? this.sender
         : this.convo.recipient;
     this.messages = this.convo.messages;
-    const msgs = await this.uke.getMessages(this.convo.id);
+    const msgs = await this.uke.getMessages(this.convo.id, this.currentAddress);
     console.log(msgs);
     this.messages = msgs;
     this.uke.api.query.uke.conversations(this.convo.id, async (v) => {
-      const newMsgs = this.uke.parseMessages(v);
+      const newMsgs = this.uke.parseMessages(v, this.currentAddress);
       this.messages = newMsgs;
     });
   }

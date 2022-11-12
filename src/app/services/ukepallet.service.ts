@@ -12,6 +12,8 @@ import {
 } from '../model/conversation.model';
 import { User } from '../model/user.model';
 import { Observable } from 'rxjs';
+import { KeyringService } from './keyring.service';
+import { u8aToHex, stringToU8a, u8aToString } from '@polkadot/util';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +21,7 @@ import { Observable } from 'rxjs';
 export class UkePalletService {
   public api: ApiPromise;
 
-  constructor() {}
+  constructor(private keyring: KeyringService) {}
 
   async init(url?: string) {
     const wsProvider = new WsProvider(url);
@@ -30,17 +32,17 @@ export class UkePalletService {
     return 'initator' in obj;
   }
 
-  async getMessages(id: string): Promise<Message[]> {
+  async getMessages(id: string, storedAddress: string): Promise<Message[]> {
     const messages: Codec = await this.api.query.uke.conversations(id);
-
     console.log('MSGS', messages);
-    return this.parseMessages(messages);
+    return this.parseMessages(messages, storedAddress);
   }
 
-  public parseMessages(storage: Codec): Message[] {
+  public parseMessages(storage: Codec, storedAddress: string): Message[] {
     const messages: Message[] = JSON.parse(storage.toString());
     return messages.map((v) => {
-      v.message = hexToStr(v.message.slice(2, v.message.length)) as string;
+      const address = storedAddress === v.sender ? v.recipient : v.sender;
+      v.message = this.keyring.decrypt(v.message, address) as string;
       v.time = new Date(v.time).toLocaleTimeString('default');
       return v;
     });
@@ -73,7 +75,8 @@ export class UkePalletService {
   }
 
   async getConversationsFromActive(
-    convos: ActiveConversation[]
+    convos: ActiveConversation[],
+    storedAddress: string
   ): Promise<Conversation[]> {
     return Promise.all(
       convos.map(async (activeConvo) => {
@@ -82,7 +85,7 @@ export class UkePalletService {
           activeConvo.initiator.accountId,
           activeConvo.recipient.accountId
         );
-        const msgs = await this.getMessages(id);
+        const msgs = await this.getMessages(id, storedAddress);
         const convo: Conversation = {
           recipient: activeConvo.recipient,
           id,
@@ -96,13 +99,14 @@ export class UkePalletService {
   }
 
   async getConversationFromActive(
-    activeConvo: ActiveConversation
+    activeConvo: ActiveConversation,
+    storedAddress: string
   ): Promise<Conversation> {
     const id = this.generateConvoId(
       activeConvo.initiator.accountId,
       activeConvo.recipient.accountId
     );
-    const msgs = await this.getMessages(id);
+    const msgs = await this.getMessages(id, storedAddress);
     const convo: Conversation = {
       recipient: activeConvo.recipient,
       id,
@@ -120,7 +124,7 @@ export class UkePalletService {
   ): Observable<Message> {
     return new Observable((subscriber) => {
       this.api.query.uke.conversations.multi(id, async (v) => {
-       const messages = v.map((v) => this.parseMessages(v));
+       const messages = v.map((v) => this.parseMessages(v, address));
         const latest = messages.pop().pop();
         if (address !== latest.sender) {
           subscriber.next(latest);
@@ -181,9 +185,9 @@ export class UkePalletService {
     message: Message,
     time: number,
     senderUsername: string,
-    recipientUsername: string
+    recipientUsername: string,
   ): Promise<any> {
-    console.log('sent message id', id);
+    
     await this.api.tx.uke
       .storeMessage(
         message.message,

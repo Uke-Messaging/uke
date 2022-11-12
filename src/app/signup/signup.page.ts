@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { KeyringService } from '../services/keyring.service';
+import { NotifService } from '../services/notif.service';
 import { UkePalletService } from '../services/ukepallet.service';
 
 @Component({
@@ -19,7 +20,8 @@ export class SignupPage implements OnInit {
   constructor(
     private keyring: KeyringService,
     private router: Router,
-    private uke: UkePalletService
+    private uke: UkePalletService,
+    private notifService: NotifService
   ) {}
 
   ngOnInit() {
@@ -36,6 +38,8 @@ export class SignupPage implements OnInit {
     try {
       const keypair = await this.keyring.loadAccount();
       console.log(keypair);
+      if (keypair.username !== this.userId)
+        throw Error("Username doesn't match account in storage");
       await this.keyring.auth(this.password, keypair.keypair);
       await this.router.navigate(['/tabs/tab1']);
     } catch {
@@ -49,9 +53,12 @@ export class SignupPage implements OnInit {
       throw Error('Passwords do not match or it is not at least 8 chars');
     }
     try {
-      const current = await this.keyring.loadAccount();
-      alert(`Existing account ${current.keypair.meta.name} exists`);
+      await this.uke.getUserInfo(this.userId);
+      await this.notifService.generalErrorAlert(
+        'This user id already exists, try another one!'
+      );
     } catch {
+      console.log("user doesnt exist - creating a new one")
       await this.keyring.createNewAccount(
         this.userId,
         this.password,

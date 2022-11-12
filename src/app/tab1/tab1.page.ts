@@ -1,8 +1,8 @@
 import '@polkadot/api-augment/substrate';
 
 import { Component, OnInit } from '@angular/core';
-import { NavigationExtras, Router } from '@angular/router';
-import { ActiveConversation, Conversation } from '../model/conversation.model';
+import { Router } from '@angular/router';
+import { Conversation } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { StoredUser, User } from '../model/user.model';
 import { KeyringService } from '../services/keyring.service';
@@ -10,6 +10,8 @@ import { UkePalletService } from '../services/ukepallet.service';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { ConversationService } from '../services/conversation.service';
 import { NotifService } from '../services/notif.service';
+import { u8aToHex } from '@polkadot/util';
+import { Subscription, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-tab1',
@@ -17,14 +19,6 @@ import { NotifService } from '../services/notif.service';
   styleUrls: ['tab1.page.scss'],
 })
 export class Tab1Page implements OnInit {
-  sampleRecievedMessage: Message = {
-    recipient: '1',
-    sender: '2',
-    message: 'i should be, yeah!',
-    hash: '0x0000000000',
-    time: 1,
-  };
-
   convos: Conversation[] = [];
   convoIds: string[] = [];
   currentKeypair: KeyringPair;
@@ -32,6 +26,8 @@ export class Tab1Page implements OnInit {
   initialMessage: string = 'hihi';
   currentAddress: string = '';
   storedUser: StoredUser;
+  messageSubscription: Subscription;
+  messageObservable: Observable<Message>;
 
   constructor(
     private router: Router,
@@ -45,41 +41,52 @@ export class Tab1Page implements OnInit {
     await this.uke.init();
     this.storedUser = await this.keyring.loadAccount();
     this.currentKeypair = this.storedUser.keypair;
+    await this.keyring.auth('password', this.storedUser.keypair);
     if (this.keyring.getKeypairLockStatus()) {
       await this.notifService.askForPasswordAlert(this.currentKeypair);
     }
+
     this.currentAddress = this.currentKeypair.address;
     const addrs = await this.uke.getActiveConversations(
       this.currentKeypair.address
     );
-    this.convos = await this.uke.getConversationsFromActive(addrs);
+    this.convos = await this.uke.getConversationsFromActive(
+      addrs,
+      this.currentAddress
+    );
     this.convoIds = this.convos.map((c) => c.id);
-    console.log(this.convoIds);
 
-    const messageListener = this.uke.watchIncomingMessages(
+    this.messageObservable = this.uke.watchIncomingMessages(
       this.convoIds,
       this.currentAddress
     );
 
-    let messageSubscription = messageListener.subscribe(
+    this.messageSubscription = this.messageObservable.subscribe(
       async (msg) =>
-        await this.notifService.showNotif(` New message: ${msg.message}`)
+        await this.notifService.showNotif(`New message: ${msg.message}`)
     );
 
     this.uke
       .watchIncomingConversations(this.currentAddress)
       .subscribe(async (_) => {
-        const convo = await this.uke.getConversationFromActive(_);
+        const convo = await this.uke.getConversationFromActive(
+          _,
+          this.currentAddress
+        );
         if (!this.convoIds.includes(convo.id)) {
-          messageSubscription.unsubscribe();
-          this.convos.push(convo);
-          this.convoIds.push(convo.id);
-          messageSubscription = messageListener.subscribe(
-            async (msg) =>
-              await this.notifService.showNotif(` New message: ${msg.message}`)
-          );
+          this.addNewConvoAndListener(convo);
         }
       });
+  }
+
+  addNewConvoAndListener(convo: Conversation) {
+    this.messageSubscription.unsubscribe();
+    this.convos.push(convo);
+    this.convoIds.push(convo.id);
+    this.messageSubscription = this.messageObservable.subscribe(
+      async (msg) =>
+        await this.notifService.showNotif(`New message: ${msg.message}`)
+    );
   }
 
   async new() {
@@ -92,10 +99,15 @@ export class Tab1Page implements OnInit {
         this.storedUser.username
       );
 
+      const encryptedMessage = this.keyring.encrypt(
+        this.initialMessage,
+        recipientUserInfo.accountId
+      );
+
       const msg: Message = {
         recipient: recipientUserInfo.accountId,
         sender: this.currentKeypair.address,
-        message: this.initialMessage,
+        message: u8aToHex(encryptedMessage),
         time: local,
         hash: '0x0000000000',
       };
@@ -105,16 +117,20 @@ export class Tab1Page implements OnInit {
         recipientUserInfo.accountId
       );
 
-      this.currentKeypair.lock();
+      const decryptedMessage = this.keyring.decryptMessage(
+        msg,
+        this.currentAddress
+      );
+
       const convo: Conversation = {
         recipient: recipientUserInfo,
         id,
         sender: senderUserInfo,
-        messages: [msg],
-        lastMessage: msg,
+        messages: [decryptedMessage],
+        lastMessage: decryptedMessage,
       };
+
       const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
-      console.log(authenticatedPair);
       await this.uke.sendMessage(
         authenticatedPair,
         id,
@@ -123,11 +139,7 @@ export class Tab1Page implements OnInit {
         senderUserInfo.username,
         recipientUserInfo.username
       );
-      this.convos.push(convo);
-      this.keyring.setNewContact({
-        address: recipientUserInfo.accountId,
-        name: recipientUserInfo.username,
-      });
+      this.addNewConvoAndListener(convo);
     } catch (_) {
       this.notifService.generalErrorAlert(
         `User ${this.recipient} does not exist!`
