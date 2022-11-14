@@ -12,9 +12,9 @@ import { UkePalletService } from '../services/ukepallet.service';
 export class SignupPage implements OnInit {
   loginSwitch: boolean = false;
 
-  userId: string = 'sadf';
-  password: string = 'password';
-  verifyPassword: string = 'password';
+  userId: string = '';
+  password: string = '';
+  verifyPassword: string = '';
   switchText: string = 'already have an account?';
 
   constructor(
