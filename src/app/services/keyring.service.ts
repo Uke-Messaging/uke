@@ -113,9 +113,6 @@ export class KeyringService {
   }
 
   async getAuthenticationStatus(): Promise<boolean> {
-    this.isAuthenticated = await this._storage?.get(
-      KeyringService.AUTHENTICATED
-    );
     return this.isAuthenticated;
   }
 

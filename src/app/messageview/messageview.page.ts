@@ -77,10 +77,6 @@ export class MessageviewPage implements OnInit {
   }
 
   async ngOnInit() {
-    if (this.keyring.getKeypairLockStatus()) {
-      await this.askForPasswordAlert();
-    }
-
     this.convo = this.conversationService.getSelectedConversation();
     this.recipient = this.convo.recipient;
     this.currentKeypair = await (await this.keyring.loadAccount()).keypair;
