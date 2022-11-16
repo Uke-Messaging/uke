@@ -5,7 +5,7 @@
     "paths": {
       "@polkadot/types/lookup": ["src/interfaces/types-lookup.ts"]
     },
-    "types": ["node"],
+    "types": ["node", "jasmine"],
     "typeRoots": ["node_modules/@types"],
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",

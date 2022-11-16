@@ -19,7 +19,7 @@ import { u8aToHex, stringToU8a, u8aToString } from '@polkadot/util';
   providedIn: 'root',
 })
 export class UkePalletService {
-  public api: ApiPromise;
+  public api: ApiPromise | any;
 
   constructor(private keyring: KeyringService) {}
 
@@ -28,21 +28,17 @@ export class UkePalletService {
     this.api = await ApiPromise.create({ provider: wsProvider });
   }
 
-  checkIsActiveConvo(obj: any): obj is ActiveConversation {
-    return 'initator' in obj;
-  }
-
   async getMessages(id: string, storedAddress: string): Promise<Message[]> {
-    const messages: Codec = await this.api.query.uke.conversations(id);
-    console.log('MSGS', messages);
+    const messages = await this.api.query.uke.conversations(id);
     return this.parseMessages(messages, storedAddress);
   }
 
-  public parseMessages(storage: Codec, storedAddress: string): Message[] {
+  private parseMessages(storage: Codec, storedAddress: string): Message[] {
     const messages: Message[] = JSON.parse(storage.toString());
     return messages.map((v) => {
       const address = storedAddress === v.sender ? v.recipient : v.sender;
-      v.message = this.keyring.decrypt(v.message, address) as string;
+      if (v.message.startsWith('0x'))
+        v.message = this.keyring.decrypt(v.message, address) as string;
       v.time = new Date(v.time).toLocaleTimeString('default');
       return v;
     });
@@ -80,7 +76,6 @@ export class UkePalletService {
   ): Promise<Conversation[]> {
     return Promise.all(
       convos.map(async (activeConvo) => {
-        console.log(activeConvo);
         const id = this.generateConvoId(
           activeConvo.initiator.accountId,
           activeConvo.recipient.accountId
@@ -124,7 +119,7 @@ export class UkePalletService {
   ): Observable<Message> {
     return new Observable((subscriber) => {
       this.api.query.uke.conversations.multi(id, async (v) => {
-       const messages = v.map((v) => this.parseMessages(v, address));
+        const messages = v.map((v) => this.parseMessages(v, address));
         const latest = messages.pop().pop();
         if (address !== latest.sender) {
           subscriber.next(latest);
@@ -142,6 +137,7 @@ export class UkePalletService {
         const newConvo: ActiveConversationSerialized[] = JSON.parse(
           v.toString()
         );
+
         const latest = newConvo.pop();
         if (latest.initiatorAddress !== address) {
           const convo: ActiveConversation = {
@@ -163,7 +159,6 @@ export class UkePalletService {
   // Gets the associated username for an account
   async getUserInfo(address: string): Promise<User> {
     const userCodec = await this.api.query.uke.usernames(address);
-    console.log(userCodec.toString());
     if (userCodec.toString() == '') {
       throw Error('User does not exist!');
     }
@@ -175,7 +170,6 @@ export class UkePalletService {
 
   // Assigns a new username and id to the identity mapping
   async assignUsername(username: string, signer: KeyringPair): Promise<any> {
-    console.log(this.api);
     return await this.api.tx.uke.register(username).signAndSend(signer);
   }
 
@@ -185,9 +179,8 @@ export class UkePalletService {
     message: Message,
     time: number,
     senderUsername: string,
-    recipientUsername: string,
+    recipientUsername: string
   ): Promise<any> {
-    
     await this.api.tx.uke
       .storeMessage(
         message.message,

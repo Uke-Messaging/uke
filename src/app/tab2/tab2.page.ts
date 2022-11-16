@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { KeyringPair } from '@polkadot/keyring/types';
 import { KeyringService } from '../services/keyring.service';
 import { UkePalletService } from '../services/ukepallet.service';
 
@@ -19,8 +18,9 @@ export class Tab2Page implements OnInit {
     private keyring: KeyringService,
     private nav: NavController
   ) {}
+
   async ngOnInit() {
-    this.uke.init();
+    await this.uke.init();
     const current = await this.keyring.loadAccount();
     this.username = current.username;
     this.address = current.address;
@@ -33,9 +33,4 @@ export class Tab2Page implements OnInit {
     await this.nav.navigateRoot('/signup');
   }
 
-  // async getUsername() {
-  //   this.username = await (
-  //     await this.uke.getUsernameForAccount(this.currentKeypair.address)
-  //   ).username;
-  // }
 }

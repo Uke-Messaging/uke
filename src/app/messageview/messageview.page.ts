@@ -27,7 +27,6 @@ export class MessageviewPage implements OnInit {
     private keyring: KeyringService,
     private uke: UkePalletService,
     private conversationService: ConversationService,
-    private alertController: AlertController
   ) {}
 
   async send() {
@@ -55,34 +54,8 @@ export class MessageviewPage implements OnInit {
     this.message = '';
   }
 
-  async askForPasswordAlert() {
-    const alert = await this.alertController.create({
-      header: 'Please enter your info',
-      buttons: [
-        {
-          text: 'Done',
-          handler: (password) =>
-            this.keyring.auth(password, this.currentKeypair),
-        },
-      ],
-      inputs: [
-        {
-          placeholder: 'Name',
-          type: 'password',
-        },
-      ],
-    });
-
-    await alert.present();
-  }
-
   async ngOnInit() {
-    if (this.keyring.getKeypairLockStatus()) {
-      await this.askForPasswordAlert();
-    }
-
     this.convo = this.conversationService.getSelectedConversation();
-    this.recipient = this.convo.recipient;
     this.currentKeypair = await (await this.keyring.loadAccount()).keypair;
     this.currentAddress = this.currentKeypair.address;
     this.sender = this.convo.sender;
@@ -92,11 +65,10 @@ export class MessageviewPage implements OnInit {
         : this.convo.recipient;
     this.messages = this.convo.messages;
     const msgs = await this.uke.getMessages(this.convo.id, this.currentAddress);
-    console.log(msgs);
     this.messages = msgs;
-    this.uke.api.query.uke.conversations(this.convo.id, async (v) => {
-      const newMsgs = this.uke.parseMessages(v, this.currentAddress);
-      this.messages = newMsgs;
+
+    this.uke.watchIncomingMessages([this.convo.id], this.currentKeypair.address).subscribe((v) => {
+      this.messages.push(v);
     });
   }
 }
