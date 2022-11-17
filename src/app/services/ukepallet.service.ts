@@ -159,7 +159,8 @@ export class UkePalletService {
   // Gets the associated username for an account
   async getUserInfo(address: string): Promise<User> {
     const userCodec = await this.api.query.uke.usernames(address);
-    if (userCodec.toString() == '') {
+    console.log(userCodec)
+    if (userCodec.toString() == '' || userCodec.toString() == undefined) {
       throw Error('User does not exist!');
     }
     const user: User = JSON.parse(userCodec.toString()) as User;

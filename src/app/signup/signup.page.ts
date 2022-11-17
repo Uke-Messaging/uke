@@ -12,9 +12,9 @@ import { UkePalletService } from '../services/ukepallet.service';
 export class SignupPage implements OnInit {
   loginSwitch: boolean = false;
 
-  userId: string = 'sadf';
-  password: string = 'password';
-  verifyPassword: string = 'password';
+  userId: string = '';
+  password: string = '';
+  verifyPassword: string = '';
   switchText: string = 'already have an account?';
 
   constructor(
@@ -42,14 +42,14 @@ export class SignupPage implements OnInit {
         throw Error("Username doesn't match account in storage");
       await this.keyring.auth(this.password, keypair.keypair);
       await this.router.navigate(['/tabs/tab1']);
-    } catch {
-      console.log('YEAH');
-      alert('UNABLE TO AUTHENTICATE USER, BAD PASSWORD OR NOT CREATED.');
+    } catch (e) {
+      console.log(e);
+      throw Error('UNABLE TO AUTHENTICATE USER, BAD PASSWORD OR NOT CREATED.');
     }
   }
 
   async signup() {
-    if (this.password !== this.verifyPassword || this.password.length < 8) {
+    if (this.password !== this.verifyPassword || this.password.length < 3) {
       throw Error('Passwords do not match or it is not at least 8 chars');
     }
     try {
