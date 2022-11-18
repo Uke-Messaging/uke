@@ -24,7 +24,7 @@ export class UkePalletService {
   constructor(private keyring: KeyringService) {}
 
   async init(url?: string) {
-    const wsProvider = new WsProvider(url);
+    const wsProvider = new WsProvider('wss://node.uke.chat:443');
     this.api = await ApiPromise.create({ provider: wsProvider });
   }
 
