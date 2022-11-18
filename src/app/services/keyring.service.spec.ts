@@ -71,8 +71,6 @@ describe('KeyringService', () => {
     await service.auth('123', account.keypair);
 
     const encryptedText = await service.encrypt('hello', account.address);
-    console.log(u8aToHex(encryptedText));
-    console.log(service.loadAuthenticatedKeypair().toJson('123'))
     const encryptedMessage: Message = {
       sender: account.address,
       recipient: account.address,

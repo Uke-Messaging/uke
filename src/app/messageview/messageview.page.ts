@@ -6,7 +6,6 @@ import { Message } from '../model/message.model';
 import { UkePalletService } from '../services/ukepallet.service';
 import { ConversationService } from '../services/conversation.service';
 import { User } from '../model/user.model';
-import { AlertController } from '@ionic/angular';
 import { u8aToHex } from '@polkadot/util';
 
 @Component({

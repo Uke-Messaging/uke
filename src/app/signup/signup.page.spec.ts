@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
 import { IonicStorageModule } from '@ionic/storage-angular';
-import { UkePalletMockService } from '../mocks/mocks.spec';
+import { UkePalletMockService } from '../mocks/mocks.data';
 import { KeyringService } from '../services/keyring.service';
 import { UkePalletService } from '../services/ukepallet.service';
 
@@ -49,15 +49,17 @@ describe('SignupPage', () => {
     component.password = '123';
     await component.login();
     expect(await keyringService.getAuthenticationStatus()).toBeTruthy();
+    component.clear();
   });
 
   it('should signup a new user', async () => {
     await keyringService.initStorage();
-    component.userId = 'username';
+    component.userId = 'bader';
     component.password = '123';
     component.verifyPassword = '123';
     await component.signup();
     expect(component).toBeTruthy();
     expect(await keyringService.getAuthenticationStatus()).toBeTruthy();
+    component.clear();
   });
 });

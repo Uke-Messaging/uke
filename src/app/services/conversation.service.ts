@@ -9,10 +9,12 @@ export class ConversationService {
 
   constructor() {}
 
+  // Selects a conversation to be used later
   selectConversation(conversation: Conversation) {
     this.selectedConversation = conversation;
   }
 
+  // Gets the currently selected conversation
   getSelectedConversation(): Conversation {
     return this.selectedConversation;
   }

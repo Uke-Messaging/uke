@@ -10,11 +10,15 @@ import Keyring from '@polkadot/keyring';
 import { mnemonicGenerate } from '@polkadot/util-crypto';
 import { UkePalletService } from '../services/ukepallet.service';
 import { IonicStorageModule } from '@ionic/storage-angular';
+import { senderKeypairJson } from '../mocks/mocks.data';
 
 describe('Tab2Page', () => {
   let component: Tab2Page;
   let fixture: ComponentFixture<Tab2Page>;
   let keyringService: KeyringService;
+
+  const keyring = new Keyring({ type: 'sr25519', ss58Format: 2 });
+  const senderKeypair = keyring.createFromJson(senderKeypairJson);
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -28,6 +32,7 @@ describe('Tab2Page', () => {
 
     keyringService = TestBed.inject(KeyringService);
 
+    keyringService.auth('123', senderKeypair);
     fixture = TestBed.createComponent(Tab2Page);
     component = fixture.componentInstance;
   }));

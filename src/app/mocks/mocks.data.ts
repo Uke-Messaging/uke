@@ -10,6 +10,8 @@ import { StoredUser, User } from '../model/user.model';
 import { mnemonicGenerate } from '@polkadot/util-crypto';
 import { KeyringPair, KeyringPair$Json } from '@polkadot/keyring/types';
 
+// Mock data for unit tests - subject to change
+
 export const senderKeypairJson: KeyringPair$Json = {
   encoded:
     'R1zxkrCmHnBqGjsZTCE8fXcyP71RZAMPHY/rucDsQAcAgAAAAQAAAAgAAACl2YdQNHkKeCsn9XrvZpzKIZ7o5E+Y9+DAyOgwiKBXV2tnPfNSTq2iCyVeEkXD+uIui6K0+9vUYdYkl8PxIjT+0plHdyvPq/GVxKmNOc7lVIvOfg1ivexF57eirf0MiEMFHcuavBJ7HJ0P4JXZnQ6KjdOGpnxF1DCPSMG/4GCE8qVFVZzbn/ov8h9B2YY1DGMZgghM3FGgZ5INzK5D',
@@ -82,7 +84,6 @@ export const user: User = {
 
 export class MockKeyringService {
   init() {}
-
   async loadAccount(): Promise<StoredUser> {
     const keyring = new Keyring({ type: 'ed25519' });
     const mnemonic = mnemonicGenerate();
@@ -98,12 +99,6 @@ export class MockKeyringService {
     };
     return storedUser;
   }
-
-  createNewAccount(
-    username: string,
-    password: string,
-    verifyPassword: string
-  ) {}
 }
 
 export class ConversationMockService {
@@ -116,7 +111,7 @@ export class ConversationMockService {
 export class UkePalletMockService {
   async init(): Promise<void> {}
 
-  watchIncomingMessages(id: string[], address: string): Observable<Message> {
+  watchIncomingMessages(_id: string[], _address: string): Observable<Message> {
     return of(message);
   }
 
@@ -124,18 +119,22 @@ export class UkePalletMockService {
     return [message, message, message];
   }
 
-  async getActiveConversations(sender?: string): Promise<ActiveConversation[]> {
+  async getActiveConversations(_sender: string): Promise<ActiveConversation[]> {
     return [activeConversation, activeConversation, activeConversation];
   }
 
   async getConversationsFromActive(
-    convos: ActiveConversation[],
-    storedAddress: string
+    _convos: ActiveConversation[],
+    _storedAddress: string
   ): Promise<Conversation[]> {
     return [convo, convo, convo];
   }
 
-  async assignUsername(username: string, signer: KeyringPair): Promise<any> {
+  async assignUsername(_username: string, _signer: KeyringPair): Promise<any> {
     return {};
+  }
+
+  async getUserInfo(): Promise<User> {
+    return { username: 'username', accountId: senderKeypairJson.address };
   }
 }

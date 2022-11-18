@@ -8,10 +8,10 @@ import {
   randomAsHex,
   signatureVerify,
 } from '@polkadot/util-crypto';
-import { u8aToHex, stringToU8a, u8aToString } from '@polkadot/util';
+import { u8aToString } from '@polkadot/util';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { Storage } from '@ionic/storage-angular';
-import { Contact, StoredUser, StoredUserSerialized } from '../model/user.model';
+import { StoredUser, StoredUserSerialized } from '../model/user.model';
 import { Message } from '../model/message.model';
 
 @Injectable({
@@ -27,6 +27,7 @@ export class KeyringService {
 
   constructor(private storage: Storage) {}
 
+  // Initializes the keyring object, can only be run once.
   async init() {
     const ready = await cryptoWaitReady;
     if (ready) {
@@ -35,9 +36,15 @@ export class KeyringService {
     await this.initStorage();
   }
 
+  // Initializes the storage object
   async initStorage() {
     const storage = await this.storage.create();
     this._storage = storage;
+  }
+
+  // Clears the local storage
+  async clearStorage() {
+    await this._storage.clear();
   }
 
   // Creates a new account with the intent of signing and verifying transactions
@@ -102,10 +109,12 @@ export class KeyringService {
     return this.isAuthenticated;
   }
 
+  // Gets the current status of whether the app is authenticated or not
   async getAuthenticationStatus(): Promise<boolean> {
     return this.isAuthenticated;
   }
 
+  // Gets the current status of the selected keypair
   getKeypairLockStatus(): boolean {
     return this.currentlyStoredUser === undefined
       ? true
@@ -115,20 +124,24 @@ export class KeyringService {
   // Sets user as not authenticated
   async logOut() {
     this.isAuthenticated = false;
+    this.currentlyStoredUser.lock();
   }
 
+  // Decrypts encrypted data with the current main keypair
   decrypt(data: Uint8Array | string, recipientAddress: string): string {
     const keypair = this.loadAuthenticatedKeypair();
     const publicKey = decodeAddress(recipientAddress);
     return u8aToString(keypair.decryptMessage(data, publicKey));
   }
 
+  // Encrypts string with the current main keypair
   encrypt(data: string, recipientAddress: string): Uint8Array {
     const keypair = this.loadAuthenticatedKeypair();
     const publicKey = decodeAddress(recipientAddress);
     return keypair.encryptMessage(data, publicKey);
   }
 
+  // Decrypts an encrypted message
   decryptMessage(msg: Message, address: string): Message {
     const recipient = address === msg.sender ? msg.recipient : msg.sender;
     const decrypted = this.decrypt(msg.message, recipient);
@@ -156,6 +169,7 @@ export class KeyringService {
     throw Error('Bad password! Not unlocked.');
   }
 
+  // Verifies a signed payload
   private async verifyPayload(
     message: string | Uint8Array,
     signature: string | Uint8Array,

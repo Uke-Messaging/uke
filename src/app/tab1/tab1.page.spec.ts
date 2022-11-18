@@ -7,7 +7,7 @@ import { Tab1Page } from './tab1.page';
 import { KeyringService } from '../services/keyring.service';
 import { ConversationService } from '../services/conversation.service';
 import { UkePalletService } from '../services/ukepallet.service';
-import { ConversationMockService, MockKeyringService, UkePalletMockService } from '../mocks/mocks.spec';
+import { ConversationMockService, MockKeyringService, UkePalletMockService } from '../mocks/mocks.data';
 
 describe('Tab1Page', () => {
   let component: Tab1Page;

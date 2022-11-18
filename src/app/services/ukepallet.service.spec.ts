@@ -1,22 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { Storage } from '@ionic/storage';
 import Keyring from '@polkadot/keyring';
-import { of } from 'rxjs';
 import {
   activeConversation,
-  convo,
   encryptedMessage,
-  message,
-  recipientKeypairJson,
   senderKeypairJson,
   serializedActiveConversation,
-  UkePalletMockService,
   user,
-} from '../mocks/mocks.spec';
+} from '../mocks/mocks.data';
 import { ActiveConversationSerialized } from '../model/conversation.model';
 import { Message } from '../model/message.model';
 import { KeyringService } from './keyring.service';
-import { u8aToHex } from '@polkadot/util';
 import { UkePalletService } from './ukepallet.service';
 
 describe('UkepalletService', () => {
@@ -35,7 +29,6 @@ describe('UkepalletService', () => {
 
   const keyring = new Keyring({ type: 'sr25519', ss58Format: 2 });
   const senderKeypair = keyring.createFromJson(senderKeypairJson);
-  const recipientKeypair = keyring.createFromJson(recipientKeypairJson);
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -45,6 +38,8 @@ describe('UkepalletService', () => {
     service = TestBed.inject(UkePalletService);
     keyringService = TestBed.inject(KeyringService);
     await keyringService.auth('123', senderKeypair);
+
+    // Mocks response from Substrate API for now.
     service.api = {
       query: {
         uke: {

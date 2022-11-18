@@ -7,7 +7,7 @@ import {
   message,
   MockKeyringService,
   UkePalletMockService,
-} from '../mocks/mocks.spec';
+} from '../mocks/mocks.data';
 import { ConversationService } from '../services/conversation.service';
 import { KeyringService } from '../services/keyring.service';
 import { UkePalletService } from '../services/ukepallet.service';

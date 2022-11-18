@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
-import { KeyringPair } from '@polkadot/keyring/types';
-import { KeyringService } from './keyring.service';
 
 @Injectable({
   providedIn: 'root',

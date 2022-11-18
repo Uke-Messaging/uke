@@ -18,9 +18,18 @@
       <ion-label position="floating">re-enter password</ion-label>
       <ion-input [(ngModel)]="verifyPassword" type="password"></ion-input>
     </ion-item>
-    <ion-button *ngIf="!loginSwitch" color="primary" (click)="signup()">create</ion-button>
-    <ion-button *ngIf="loginSwitch"  color="primary" (click)="login()">login</ion-button>
-    <ion-button color="primary" (click)="switchLogin()">{{ switchText }}</ion-button>
+    <ion-button *ngIf="!loginSwitch" color="primary" (click)="signup()"
+      >create</ion-button
+    >
+    <ion-button *ngIf="loginSwitch" color="primary" (click)="login()"
+      >login</ion-button
+    >
+    <ion-button color="primary" (click)="switchLogin()"
+      >{{ switchText }}</ion-button
+    >
+    <ion-button color="warning" (click)="clear()"
+      >reset storage (WARNING: DEV FEATURE!)</ion-button
+    >
   </div>
 </ion-content>
 

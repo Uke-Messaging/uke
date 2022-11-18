@@ -22,8 +22,8 @@ export class Tab1Page implements OnInit {
   convos: Conversation[] = [];
   convoIds: string[] = [];
   currentKeypair: KeyringPair;
-  recipient: string = 'badery';
-  initialMessage: string = 'hihi';
+  recipient: string = '';
+  initialMessage: string = '';
   currentAddress: string = '';
   storedUser: StoredUser;
   messageSubscription: Subscription;

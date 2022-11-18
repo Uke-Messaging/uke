@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { convo } from '../mocks/mocks.spec';
+import { convo } from '../mocks/mocks.data';
 
 import { ConversationService } from './conversation.service';
 
