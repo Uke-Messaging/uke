@@ -48,13 +48,16 @@ export class KeyringService {
   }
 
   // Creates a new account with the intent of signing and verifying transactions
-  createNewAccount(
+  async createNewAccount(
     username: string,
     password: string,
     reenterPassword: string
   ): Promise<any> {
     if (password !== reenterPassword) {
       throw Error("Passwords don't match, please check again!");
+    } 
+    if (await this._storage.get(KeyringService.MAIN_ACCOUNT) != undefined) {
+      throw Error('Local account already exists.');
     }
     const seed = randomAsHex(32);
     const { pair, json } = keyring.addUri(

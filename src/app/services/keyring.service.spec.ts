@@ -30,10 +30,17 @@ describe('KeyringService', () => {
 
   it('should create and fetch a new account successfully', async () => {
     await service.initStorage();
-    await service.createNewAccount('username', '123', '123');
+    await service.createNewAccount('bader', '123', '123');
     const account = await service.loadAccount();
-    expect(account.username).toEqual('username');
+    expect(account.username).toEqual('bader');
     expect(service).toBeTruthy();
+  });
+
+  it('should throw if local account already exists', async () => {
+    await service.initStorage();
+    await expectAsync(
+      service.createNewAccount('bader', '123', '123')
+    ).toBeRejected();
   });
 
   it('should authenticate using keypair successfully', async () => {
@@ -44,6 +51,12 @@ describe('KeyringService', () => {
     expect(service).toBeTruthy();
     expect(await service.getAuthenticationStatus()).toBeTrue();
     expect(authenticatedAccount.address).toEqual(account.address);
+  });
+
+  it('should fail authenticating using keypair', async () => {
+    await service.initStorage();
+    const account = await service.loadAccount();
+    await expectAsync(service.auth('124', account.keypair)).toBeRejected();
   });
 
   it('encrypt and decrypt a payload', async () => {
@@ -65,6 +78,12 @@ describe('KeyringService', () => {
     expect(await service.getAuthenticationStatus()).toBeFalse();
   });
 
+  it('passwords do not match', async () => {
+    await expectAsync(
+      service.createNewAccount('bader', '123', '124')
+    ).toBeRejected();
+  });
+
   it('decrypt a message object', async () => {
     await service.initStorage();
     const account = await service.loadAccount();
@@ -84,5 +103,11 @@ describe('KeyringService', () => {
     );
     expect(service).toBeTruthy();
     expect(decryptedMessage.message).toEqual('hello');
+  });
+
+  it('should throw upon non-existent local account', async () => {
+    await service.initStorage();
+    await service.clearStorage();
+    await expectAsync(service.loadAccount()).toBeRejected();
   });
 });

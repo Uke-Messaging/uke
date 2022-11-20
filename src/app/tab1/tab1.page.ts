@@ -28,6 +28,7 @@ export class Tab1Page implements OnInit {
   storedUser: StoredUser;
   messageSubscription: Subscription;
   messageObservable: Observable<Message>;
+  audio: HTMLAudioElement;
 
   constructor(
     private router: Router,
@@ -36,8 +37,10 @@ export class Tab1Page implements OnInit {
     private conversationService: ConversationService,
     private notifService: NotifService
   ) {}
-
   async ngOnInit() {
+    this.audio = new Audio('../../assets/uke-notif-sound.mp3');
+    this.audio.volume = 0.08;
+
     await this.uke.init();
     this.storedUser = await this.keyring.loadAccount();
     this.currentKeypair = this.storedUser.keypair;
@@ -78,10 +81,10 @@ export class Tab1Page implements OnInit {
     this.messageSubscription.unsubscribe();
     this.convos.push(convo);
     this.convoIds.push(convo.id);
-    this.messageSubscription = this.messageObservable.subscribe(
-      async (msg) =>
-        await this.notifService.showNotif(`New message: ${msg.message}`)
-    );
+    this.messageSubscription = this.messageObservable.subscribe(async (msg) => {
+      await this.notifService.showNotif(`New message: ${msg.message}`);
+      this.audio.play();
+    });
   }
 
   async new() {

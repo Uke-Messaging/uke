@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-   <!-- <ion-title>{{ recipient.username }}</ion-title> -->
+    <!-- <ion-title>{{ recipient.username }}</ion-title> -->
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
@@ -19,9 +19,15 @@
       </ion-card>
     </ion-item>
   </ion-list>
-
-  <div class="compose">
-    <ion-input placeholder="compose..." [(ngModel)]="message"></ion-input>
-    <ion-icon color="primary" name="send" (click)="send()"></ion-icon>
-  </div>
 </ion-content>
+
+<div class="compose">
+  <ion-input (keyup.enter)="send()" placeholder="compose..." [(ngModel)]="message"></ion-input>
+  <ion-button
+    [disabled]="message.length == 0 || message === ''"
+    color="primary"
+    (click)="send()"
+  >
+    <ion-icon name="send"></ion-icon>
+  </ion-button>
+</div>

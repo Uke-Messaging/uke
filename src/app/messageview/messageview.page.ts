@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { KeyringService } from '../services/keyring.service';
 import { Conversation } from '../model/conversation.model';
@@ -25,32 +25,37 @@ export class MessageviewPage implements OnInit {
   constructor(
     private keyring: KeyringService,
     private uke: UkePalletService,
-    private conversationService: ConversationService,
+    private conversationService: ConversationService
   ) {}
 
   async send() {
-    const time = Date.now();
-    const local = new Date(time).toLocaleTimeString('default');
-    const encryptedMessage = this.keyring.encrypt(this.message, this.recipient.accountId);
-    const msg: Message = {
-      recipient: this.recipient.accountId,
-      sender: this.currentKeypair.address,
-      message: u8aToHex(encryptedMessage),
-      time: local,
-      hash: '0x0000000000',
-    };
-    const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
+    if (this.message.length > 0 || this.message !== '') {
+      const time = Date.now();
+      const local = new Date(time).toLocaleTimeString('default');
+      const encryptedMessage = this.keyring.encrypt(
+        this.message,
+        this.recipient.accountId
+      );
+      const msg: Message = {
+        recipient: this.recipient.accountId,
+        sender: this.currentKeypair.address,
+        message: u8aToHex(encryptedMessage),
+        time: local,
+        hash: '0x0000000000',
+      };
+      const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
 
-    await this.uke.sendMessage(
-      authenticatedPair,
-      this.convo.id,
-      msg,
-      time,
-      this.sender.username,
-      this.recipient.username
-    );
-    this.messages.push(this.keyring.decryptMessage(msg, this.currentAddress));
-    this.message = '';
+      await this.uke.sendMessage(
+        authenticatedPair,
+        this.convo.id,
+        msg,
+        time,
+        this.sender.username,
+        this.recipient.username
+      );
+      this.messages.push(this.keyring.decryptMessage(msg, this.currentAddress));
+      this.message = '';
+    }
   }
 
   async ngOnInit() {
@@ -66,8 +71,10 @@ export class MessageviewPage implements OnInit {
     const msgs = await this.uke.getMessages(this.convo.id, this.currentAddress);
     this.messages = msgs;
 
-    this.uke.watchIncomingMessages([this.convo.id], this.currentKeypair.address).subscribe((v) => {
-      this.messages.push(v);
-    });
+    this.uke
+      .watchIncomingMessages([this.convo.id], this.currentKeypair.address)
+      .subscribe((v) => {
+        this.messages.push(v);
+      });
   }
 }

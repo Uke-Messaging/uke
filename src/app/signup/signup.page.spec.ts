@@ -43,15 +43,6 @@ describe('SignupPage', () => {
     expect(component.switchText).toEqual('need to create an account?');
   });
 
-  it('should login an existing user', async () => {
-    await keyringService.initStorage();
-    component.userId = 'username';
-    component.password = '123';
-    await component.login();
-    expect(await keyringService.getAuthenticationStatus()).toBeTruthy();
-    component.clear();
-  });
-
   it('should signup a new user', async () => {
     await keyringService.initStorage();
     component.userId = 'bader';
@@ -60,6 +51,13 @@ describe('SignupPage', () => {
     await component.signup();
     expect(component).toBeTruthy();
     expect(await keyringService.getAuthenticationStatus()).toBeTruthy();
-    component.clear();
+  });
+
+  it('should login an existing user', async () => {
+    await keyringService.initStorage();
+    component.userId = 'bader';
+    component.password = '123';
+    await component.login();
+    expect(await keyringService.getAuthenticationStatus()).toBeTruthy();
   });
 });
