@@ -77,7 +77,7 @@ export class MessageviewPage implements OnInit {
       .watchIncomingMessages([this.convo.id], this.currentKeypair.address)
       .subscribe((v) => {
         const latest = this.messages[this.messages.length - 1];
-        if (v.message != latest.message && latest.time != latest.time)
+        if (v.message != latest.message && latest.time != v.time)
           this.messages.push(v);
       });
   }
