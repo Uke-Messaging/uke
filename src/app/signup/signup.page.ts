@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { KeyringService } from '../services/keyring.service';
 import { NotifService } from '../services/notif.service';
 import { UkePalletService } from '../services/ukepallet.service';
+import { StoredUser, User } from '../model/user.model';
 
 @Component({
   selector: 'app-signup',
@@ -37,9 +38,6 @@ export class SignupPage implements OnInit {
   async login() {
     try {
       const keypair = await this.keyring.loadAccount();
-      const user = await this.uke.getUserInfo(this.userId);
-      if (keypair.username !== user.username)
-        throw Error("Fetched username doesn't match account in storage");
       await this.keyring.auth(this.password, keypair.keypair);
       await this.router.navigate(['/tabs/tab1']);
     } catch (e) {
@@ -53,29 +51,22 @@ export class SignupPage implements OnInit {
   async signup() {
     if (this.password !== this.verifyPassword || this.password.length < 3) {
       throw Error('Passwords do not match or it is not at least 3 chars');
-    }
-    try {
-      const user = await this.uke.getUserInfo(this.userId);
-      const localAccount = await this.keyring.loadAccount();
-      console.log(user, localAccount);
-      if (user.username === this.userId) {
-        await this.notifService.generalErrorAlert(
-          'This user id already exists, try another one!'
-        );
-      }
-    } catch {
-      console.log('user doesnt exist - creating a new one');
-      await this.keyring.createNewAccount(
-        this.userId,
-        this.password,
-        this.verifyPassword
-      );
-      const current = await this.keyring.loadAccount();
-      current.keypair.unlock(this.password);
-      await this.uke.assignUsername(this.userId, current.keypair);
-      current.keypair.lock();
-      await this.keyring.auth(this.password, current.keypair);
-      await this.router.navigate(['/tabs/tab1']);
+    } else {
+      await this.keyring
+        .createNewAccount(this.userId, this.password, this.verifyPassword)
+        .then(async (_) => {
+          const local = await this.keyring.loadAccount();
+          local.keypair.unlock(this.password);
+          await this.uke.assignUsername(this.userId, local.keypair);
+          local.keypair.lock();
+          await this.keyring.auth(this.password, local.keypair);
+          await this.router.navigate(['/tabs/tab1']);
+        })
+        .catch((_) => {
+          if (_.message === 'User ID already exists')
+            this.keyring.clearStorage();
+          this.notifService.generalErrorAlert(_.message);
+        });
     }
   }
 

@@ -14,9 +14,14 @@
     <div class="new-message">
       <ion-input
         [(ngModel)]="initialMessage"
-        placeholder="message..."
+        placeholder="type a message..."
       ></ion-input>
-      <ion-button size="small" (click)="new()">new</ion-button>
+      <ion-button
+        size="small"
+        [disabled]="initialMessage.length == 0 || initialMessage === '' || recipient.length == 0 ||  recipient === ''"
+        (click)="new()"
+        >new</ion-button
+      >
     </div>
     <ion-chip color="success">Recent</ion-chip>
   </div>
@@ -29,7 +34,8 @@
       ></ion-icon>
       <ion-label>
         <h2>
-          {{ msg.recipient.accountId === currentAddress ? msg.sender.username : msg.recipient.username }}
+          {{ msg.recipient.accountId === currentAddress ? msg.sender.username :
+          msg.recipient.username }}
         </h2>
         <p>{{ msg.lastMessage.message }}</p>
       </ion-label>

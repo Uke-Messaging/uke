@@ -164,12 +164,16 @@ export class UkePalletService {
     }
     const user: User = JSON.parse(userCodec.toString()) as User;
     const username = user.username;
-    user.username = hexToStr( user.username.slice(2, username.length)) as string;
+    user.username = hexToStr(user.username.slice(2, username.length)) as string;
     return user;
   }
 
   // Assigns a new username and id to the identity mapping
   async assignUsername(username: string, signer: KeyringPair): Promise<any> {
+    const userCodec = await this.api.query.uke.usernames(username);
+    if (userCodec.toString() != '') {
+      throw Error('User ID already exists');
+    }
     return await this.api.tx.uke.register(username).signAndSend(signer);
   }
 
