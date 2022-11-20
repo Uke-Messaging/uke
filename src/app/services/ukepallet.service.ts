@@ -24,7 +24,7 @@ export class UkePalletService {
   constructor(private keyring: KeyringService) {}
 
   async init(url?: string) {
-    const wsProvider = new WsProvider(url);
+    const wsProvider = new WsProvider('wss://node.uke.chat:443');
     this.api = await ApiPromise.create({ provider: wsProvider });
   }
 
@@ -120,7 +120,7 @@ export class UkePalletService {
     return new Observable((subscriber) => {
       this.api.query.uke.conversations.multi(id, async (v) => {
         const messages = v.map((v) => this.parseMessages(v, address));
-        const latest = messages.pop().pop();
+        const latest: Message = messages.pop().pop();
         if (address !== latest.sender) {
           subscriber.next(latest);
         }

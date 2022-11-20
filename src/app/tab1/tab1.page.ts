@@ -60,8 +60,10 @@ export class Tab1Page implements OnInit {
     );
 
     this.messageSubscription = this.messageObservable.subscribe(
-      async (msg) =>
+      async (msg) => {
+        console.log(msg);
         await this.notifService.showNotif(`New message: ${msg.message}`)
+      }
     );
 
     this.uke

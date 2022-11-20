@@ -62,19 +62,23 @@ export class MessageviewPage implements OnInit {
     this.convo = this.conversationService.getSelectedConversation();
     this.currentKeypair = await (await this.keyring.loadAccount()).keypair;
     this.currentAddress = this.currentKeypair.address;
+    console.log(this.currentAddress);
     this.sender = this.convo.sender;
     this.recipient =
       this.convo.recipient.accountId === this.currentKeypair.address
         ? this.sender
         : this.convo.recipient;
-    this.messages = this.convo.messages;
+    // this.messages = this.convo.messages;
     const msgs = await this.uke.getMessages(this.convo.id, this.currentAddress);
     this.messages = msgs;
+    console.log(msgs);
 
     this.uke
       .watchIncomingMessages([this.convo.id], this.currentKeypair.address)
       .subscribe((v) => {
-        this.messages.push(v);
+        const latest = this.messages[this.messages.length - 1];
+        if (v.message != latest.message && latest.time != latest.time)
+          this.messages.push(v);
       });
   }
 }
