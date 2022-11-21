@@ -27,7 +27,8 @@ export class KeyringService {
 
   constructor(private storage: Storage) {}
 
-  // Initializes the keyring object, can only be run once.
+  /** Initializes the keyring object, can only be run once.
+   */
   async init() {
     const ready = await cryptoWaitReady;
     if (ready) {
@@ -36,18 +37,26 @@ export class KeyringService {
     await this.initStorage();
   }
 
-  // Initializes the storage object
+  /** Initializes the Ionic storage object
+   */
   async initStorage() {
     const storage = await this.storage.create();
     this._storage = storage;
   }
 
-  // Clears the local storage
+  /** Clears local Ionic Storage.
+   */
   async clearStorage() {
     await this._storage.clear();
   }
 
-  // Creates a new account with the intent of signing and verifying transactions
+  /** Creates a new account with the intent of signing and verifying transactions.
+   *
+   * @param {string} username - New account's username.
+   * @param {string} password - Recipient's address.
+   * @param {string} reenterPassword - Recipient's address.
+   * @returns {Promise<any>}
+   */
   async createNewAccount(
     username: string,
     password: string,
@@ -55,8 +64,8 @@ export class KeyringService {
   ): Promise<any> {
     if (password !== reenterPassword) {
       throw Error("Passwords don't match, please check again!");
-    } 
-    if (await this._storage.get(KeyringService.MAIN_ACCOUNT) != undefined) {
+    }
+    if ((await this._storage.get(KeyringService.MAIN_ACCOUNT)) != undefined) {
       throw Error('Local account already exists.');
     }
     const seed = randomAsHex(32);
@@ -76,6 +85,10 @@ export class KeyringService {
     return this._storage.set(KeyringService.MAIN_ACCOUNT, storedUserSerialized);
   }
 
+  /** Loads an account from storage.
+   *
+   * @returns {Promise<StoredUser>}
+   */
   async loadAccount(): Promise<StoredUser> {
     const raw = await this._storage.get(KeyringService.MAIN_ACCOUNT);
     if (raw === undefined || raw === null)
@@ -89,11 +102,20 @@ export class KeyringService {
     };
   }
 
+  /** Loads an unlocked, authenticated keypair.
+   *
+   * @returns {KeyringPair}
+   */
   loadAuthenticatedKeypair(): KeyringPair {
     return this.currentlyStoredUser;
   }
 
-  // Successfully unlock account upon login to ensure user authentication
+  /** Successfully unlock account upon login to ensure user authentication.
+   *
+   * @param {string} password - Recipient's address.
+   * @param {KeyringPair} keypaiur - Recipient's address.
+   * @returns {Promise<boolean>}
+   */
   async auth(password: string, keypair: KeyringPair): Promise<boolean> {
     const signature = await this.unlockAndSignPayload(
       keypair,
@@ -112,39 +134,60 @@ export class KeyringService {
     return this.isAuthenticated;
   }
 
-  // Gets the current status of whether the app is authenticated or not
+  /** Gets the current status of whether the app is authenticated or not.
+   *
+   * @returns {Promise<boolean>}
+   */
   async getAuthenticationStatus(): Promise<boolean> {
     return this.isAuthenticated;
   }
 
-  // Gets the current status of the selected keypair
+  /** Gets the current status of the selected keypair.
+   *
+   * @returns {boolean}
+   */
   getKeypairLockStatus(): boolean {
     return this.currentlyStoredUser === undefined
       ? true
       : this.currentlyStoredUser.isLocked;
   }
 
-  // Sets user as not authenticated
+  /** Sets user as not authenticated and locks the keypair.
+   *
+   */
   async logOut() {
     this.isAuthenticated = false;
     this.currentlyStoredUser.lock();
   }
 
-  // Decrypts encrypted data with the current main keypair
+  /** Decrypts encrypted data with the current main keypair.
+   *
+   * @param {Uint8Array | string} data - Data to decrypt.
+   * @param {string} recipientAddress - Recipient's address.
+   * @returns {string}
+   */
   decrypt(data: Uint8Array | string, recipientAddress: string): string {
     const keypair = this.loadAuthenticatedKeypair();
     const publicKey = decodeAddress(recipientAddress);
     return u8aToString(keypair.decryptMessage(data, publicKey));
   }
 
-  // Encrypts string with the current main keypair
+  /** Encrypts string with the current main keypair
+   *
+   * @returns {Uint8Array}
+   */
   encrypt(data: string, recipientAddress: string): Uint8Array {
     const keypair = this.loadAuthenticatedKeypair();
     const publicKey = decodeAddress(recipientAddress);
     return keypair.encryptMessage(data, publicKey);
   }
 
-  // Decrypts an encrypted message
+  /** Decrypts an encrypted message.
+   *
+   * @param {Message} msg - Message to decrypt.
+   * @param {string} address - Recipient's address.
+   * @returns {Message}
+   */
   decryptMessage(msg: Message, address: string): Message {
     const recipient = address === msg.sender ? msg.recipient : msg.sender;
     const decrypted = this.decrypt(msg.message, recipient);
@@ -153,11 +196,16 @@ export class KeyringService {
       sender: msg.sender,
       time: msg.time,
       message: decrypted,
-      hash: '',
     };
   }
 
-  // Unlock and sign a payload
+  /** Unlock a keypair and sign a payload with it.
+   *
+   * @param {Message} pair - Keypair to be unlocked and utilized.
+   * @param {string} password - Keypair's password.
+   * @param {string} message - Message to sign.
+   * @returns {Promise<Uint8Array>}
+   */
   private async unlockAndSignPayload(
     pair: KeyringPair,
     password: string,
@@ -172,7 +220,13 @@ export class KeyringService {
     throw Error('Bad password! Not unlocked.');
   }
 
-  // Verifies a signed payload
+  /** Verifies a signed payload.
+   *
+   * @param {string | Uint8Array} message - Message to be verified.
+   * @param {string | Uint8Array} signature - Provided signature to verify.
+   * @param {string} publicKeyOrAddress - Message to verify.
+   * @returns {Promise<boolean>}
+   */
   private async verifyPayload(
     message: string | Uint8Array,
     signature: string | Uint8Array,

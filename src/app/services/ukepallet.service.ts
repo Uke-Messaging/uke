@@ -13,7 +13,6 @@ import {
 import { User } from '../model/user.model';
 import { Observable } from 'rxjs';
 import { KeyringService } from './keyring.service';
-import { u8aToHex, stringToU8a, u8aToString } from '@polkadot/util';
 
 @Injectable({
   providedIn: 'root',
@@ -23,16 +22,28 @@ export class UkePalletService {
 
   constructor(private keyring: KeyringService) {}
 
-  async init(url?: string) {
+  /** Initializes the API Promise for connecting to a Substrate node.
+   */
+  async init() {
     const wsProvider = new WsProvider('wss://node.uke.chat:443');
     this.api = await ApiPromise.create({ provider: wsProvider });
   }
 
+  /** Gets the messages for a particular conversation ID
+   * @param {string} id - Conversation ID
+   * @param {string} storedAddress - Locally stored address.
+   * @returns {Promise<Message[]>}
+   */
   async getMessages(id: string, storedAddress: string): Promise<Message[]> {
     const messages = await this.api.query.uke.conversations(id);
     return this.parseMessages(messages, storedAddress);
   }
 
+  /** Parses the response from the Substrate node.
+   * @param {Codec} storage - Conversation ID
+   * @param {string} storedAddress - Locally stored address.
+   * @returns {Message[]}
+   */
   private parseMessages(storage: Codec, storedAddress: string): Message[] {
     const messages: Message[] = JSON.parse(storage.toString());
     return messages.map((v) => {
@@ -44,14 +55,27 @@ export class UkePalletService {
     });
   }
 
+  /** Generates a new conversation ID vias SHA3-256
+   * @param {string} sender - Sender / initiator address.
+   * @param {string} recipient - Recipient address.
+   * @returns {string}
+   */
   generateConvoId(sender: string, recipient: string): string {
     return sha3_256(sender + recipient);
   }
 
+  /** Turns hex to a human readable string
+   * @param {string} hex - Hex formatted text.
+   * @returns {string}
+   */
   private hexStrParser(hex: string): string {
     return hexToStr(hex.slice(2, hex.length)) as string;
   }
 
+  /** Get the active conversations for a specified address
+   * @param {string} sender - Sender's address.
+   * @returns {Promise<ActiveConversation[]>}
+   */
   async getActiveConversations(sender?: string): Promise<ActiveConversation[]> {
     const convoAddrs = await this.api.query.uke.activeConversations(sender);
     const serializedActiveConversations: ActiveConversationSerialized[] =
@@ -70,6 +94,11 @@ export class UkePalletService {
     });
   }
 
+  /** Gets the Conversations from multiple ActiveConversations
+   * @param {ActiveConversation[]} convos - Active conversations to retrieve.
+   * @param {string} storedAddress - Locally stored address.
+   * @returns {Promise<Conversation[]>}
+   */
   async getConversationsFromActive(
     convos: ActiveConversation[],
     storedAddress: string
@@ -93,6 +122,11 @@ export class UkePalletService {
     );
   }
 
+  /** Gets a single conversation from an ActiveConversation
+   * @param {ActiveConversation} activeConvo - Active conversation to retrieve.
+   * @param {string} storedAddress - Locally stored address.
+   * @returns {Promise<Conversation>}
+   */
   async getConversationFromActive(
     activeConvo: ActiveConversation,
     storedAddress: string
@@ -112,7 +146,11 @@ export class UkePalletService {
     return convo;
   }
 
-  // Observable that returns the latest message from a conversation
+  /** Observable that returns the latest message from a batch of conversations
+   * @param {string[]} id - List of ids to watch.
+   * @param {string} address - Locally stored address.
+   * @returns {Observable<Message>}
+   */
   public watchIncomingMessages(
     id: string[],
     address: string
@@ -128,7 +166,10 @@ export class UkePalletService {
     });
   }
 
-  // Observable that returns any new active conversations pertaining to the user
+  /** Observable that returns any new active pending conversations pertaining to the user.
+   * @param {string} address - Address to watch.
+   * @returns {Observable<ActiveConversation>}
+   */
   public watchIncomingConversations(
     address: string
   ): Observable<ActiveConversation> {
@@ -156,7 +197,10 @@ export class UkePalletService {
     });
   }
 
-  // Gets the associated username for an account
+  /** Gets the associated username for an account.
+   * @param {string} userId - Username to get info from.
+   * @returns {Promise<User>}
+   */
   async getUserInfo(userId: string): Promise<User> {
     const userCodec = await this.api.query.uke.usernames(userId);
     if (userCodec.toString() == '' || userCodec.toString() == undefined) {
@@ -168,7 +212,11 @@ export class UkePalletService {
     return user;
   }
 
-  // Assigns a new username and id to the identity mapping
+  /** Assigns a new username and id to the identity mapping.
+   * @param {string} username - Username to assign
+   * @param {KeyringPair} signer - Keypair to sign and send.
+   * @returns {Promise<any>}
+   */
   async assignUsername(username: string, signer: KeyringPair): Promise<any> {
     const userCodec = await this.api.query.uke.usernames(username);
     if (userCodec.toString() != '') {
@@ -177,6 +225,15 @@ export class UkePalletService {
     return await this.api.tx.uke.register(username).signAndSend(signer);
   }
 
+  /** Sends a new message to the specified recipient.
+   * @param {KeyringPair} signer - Username to assign
+   * @param {string} id - Conversation to add to.
+   * @param {Message} message - Message to send.
+   * @param {number} time - UNIX timestamp.
+   * @param {string} senderUsername - Sender's username.
+   * @param {string} recipientUsername - Recipient's username.
+   * @returns {Promise<any>}
+   */
   async sendMessage(
     signer: KeyringPair,
     id: string,

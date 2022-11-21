@@ -45,14 +45,12 @@ export const recipientKeypairJson: KeyringPair$Json = {
 export const message: Message = {
   sender: senderKeypairJson.address,
   recipient: recipientKeypairJson.address,
-  hash: '',
   message: 'hello',
 };
 
 export const encryptedMessage: Message = {
   sender: senderKeypairJson.address,
   recipient: recipientKeypairJson.address,
-  hash: '',
   message:
     '0x0243522166066218975d7c8fcfd553cd0b941de0b31b6fbaaffe6fc3f2fb445a644ff8ea2f0754f2e6b037c5b0',
 };

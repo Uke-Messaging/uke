@@ -93,7 +93,6 @@ describe('KeyringService', () => {
     const encryptedMessage: Message = {
       sender: account.address,
       recipient: account.address,
-      hash: '',
       message: u8aToHex(encryptedText),
     };
 

@@ -109,7 +109,6 @@ export class Tab1Page implements OnInit {
         sender: this.currentKeypair.address,
         message: u8aToHex(encryptedMessage),
         time: local,
-        hash: '0x0000000000',
       };
 
       const id = this.uke.generateConvoId(

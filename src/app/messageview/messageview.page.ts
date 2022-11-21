@@ -28,6 +28,7 @@ export class MessageviewPage implements OnInit {
     private conversationService: ConversationService
   ) {}
 
+  // Sends a new message
   async send() {
     if (this.message.length > 0 || this.message !== '') {
       const time = Date.now();
@@ -41,7 +42,6 @@ export class MessageviewPage implements OnInit {
         sender: this.currentKeypair.address,
         message: u8aToHex(encryptedMessage),
         time: local,
-        hash: '0x0000000000',
       };
       const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
 
@@ -58,6 +58,7 @@ export class MessageviewPage implements OnInit {
     }
   }
 
+  // Gets the component ready for usage.
   async ngOnInit() {
     this.convo = this.conversationService.getSelectedConversation();
     this.currentKeypair = await (await this.keyring.loadAccount()).keypair;
@@ -68,7 +69,6 @@ export class MessageviewPage implements OnInit {
       this.convo.recipient.accountId === this.currentKeypair.address
         ? this.sender
         : this.convo.recipient;
-    // this.messages = this.convo.messages;
     const msgs = await this.uke.getMessages(this.convo.id, this.currentAddress);
     this.messages = msgs;
     console.log(msgs);
