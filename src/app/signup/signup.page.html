@@ -1,11 +1,20 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title class="uke-logo">UKE</ion-title>
+    <ion-title class="uke-logo">
+      <img src="../../assets/uke-logo.png"
+    /></ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div class="form">
+    <b
+      >WARNING: This is a development network, meaning it is subject to resets
+      and bugs. Make sure to report them!</b
+    >
+    <ion-item>
+      <img src="../../assets/uke-alpha.png" />
+    </ion-item>
     <ion-item>
       <ion-label position="floating">user id</ion-label>
       <ion-input [(ngModel)]="userId"></ion-input>

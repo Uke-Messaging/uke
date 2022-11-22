@@ -37,11 +37,11 @@ export class Tab1Page implements OnInit {
     private conversationService: ConversationService,
     private notifService: NotifService
   ) {}
+
   async ngOnInit() {
     this.audio = new Audio('../../assets/uke-notif-sound.mp3');
     this.audio.volume = 0.08;
 
-    await this.uke.init();
     this.storedUser = await this.keyring.loadAccount();
     this.currentKeypair = this.storedUser.keypair;
     this.currentAddress = this.currentKeypair.address;
@@ -59,12 +59,10 @@ export class Tab1Page implements OnInit {
       this.currentAddress
     );
 
-    this.messageSubscription = this.messageObservable.subscribe(
-      async (msg) => {
-        console.log(msg);
-        await this.notifService.showNotif(`New message: ${msg.message}`)
-      }
-    );
+    this.messageSubscription = this.messageObservable.subscribe(async (msg) => {
+      console.log(msg);
+      await this.notifService.showNotif(`New message: ${msg.message}`);
+    });
 
     this.uke
       .watchIncomingConversations(this.currentAddress)
@@ -90,59 +88,66 @@ export class Tab1Page implements OnInit {
   }
 
   async new() {
-    const time = Date.now();
-    const local = new Date(time).toLocaleTimeString('default');
-
-    try {
-      const recipientUserInfo = await this.uke.getUserInfo(this.recipient);
-      const senderUserInfo = await this.uke.getUserInfo(
-        this.storedUser.username
-      );
-
-      const encryptedMessage = this.keyring.encrypt(
-        this.initialMessage,
-        recipientUserInfo.accountId
-      );
-
-      const msg: Message = {
-        recipient: recipientUserInfo.accountId,
-        sender: this.currentKeypair.address,
-        message: u8aToHex(encryptedMessage),
-        time: local,
-      };
-
-      const id = this.uke.generateConvoId(
-        this.currentKeypair.address,
-        recipientUserInfo.accountId
-      );
-
-      const decryptedMessage = this.keyring.decryptMessage(
-        msg,
-        this.currentAddress
-      );
-
-      const convo: Conversation = {
-        recipient: recipientUserInfo,
-        id,
-        sender: senderUserInfo,
-        messages: [decryptedMessage],
-        lastMessage: decryptedMessage,
-      };
-
-      const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
-      await this.uke.sendMessage(
-        authenticatedPair,
-        id,
-        msg,
-        time,
-        senderUserInfo.username,
-        recipientUserInfo.username
-      );
-      this.addNewConvoAndListener(convo);
-    } catch (_) {
+    const usernames = this.convos.map((_) => _.recipient.username);
+    if (usernames.includes(this.recipient)) {
       this.notifService.generalErrorAlert(
-        `User ${this.recipient} does not exist!`
+        'You already have a conversation with this user!'
       );
+    } else {
+      const time = Date.now();
+      const local = new Date(time).toLocaleTimeString('default');
+
+      try {
+        const recipientUserInfo = await this.uke.getUserInfo(this.recipient);
+        const senderUserInfo = await this.uke.getUserInfo(
+          this.storedUser.username
+        );
+
+        const encryptedMessage = this.keyring.encrypt(
+          this.initialMessage,
+          recipientUserInfo.accountId
+        );
+
+        const msg: Message = {
+          recipient: recipientUserInfo.accountId,
+          sender: this.currentKeypair.address,
+          message: u8aToHex(encryptedMessage),
+          time: local,
+        };
+
+        const id = this.uke.generateConvoId(
+          this.currentKeypair.address,
+          recipientUserInfo.accountId
+        );
+
+        const decryptedMessage = this.keyring.decryptMessage(
+          msg,
+          this.currentAddress
+        );
+
+        const convo: Conversation = {
+          recipient: recipientUserInfo,
+          id,
+          sender: senderUserInfo,
+          messages: [decryptedMessage],
+          lastMessage: decryptedMessage,
+        };
+
+        const authenticatedPair = this.keyring.loadAuthenticatedKeypair();
+        await this.uke.sendMessage(
+          authenticatedPair,
+          id,
+          msg,
+          time,
+          senderUserInfo.username,
+          recipientUserInfo.username
+        );
+        this.addNewConvoAndListener(convo);
+      } catch (_) {
+        this.notifService.generalErrorAlert(
+          `User ${this.recipient} does not exist!`
+        );
+      }
     }
   }
 

@@ -20,7 +20,6 @@ export class Tab2Page implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.uke.init();
     const current = await this.keyring.loadAccount();
     this.username = current.username;
     this.address = current.address;

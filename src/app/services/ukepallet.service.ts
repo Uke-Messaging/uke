@@ -27,6 +27,7 @@ export class UkePalletService {
   async init() {
     const wsProvider = new WsProvider('wss://node.uke.chat:443');
     this.api = await ApiPromise.create({ provider: wsProvider });
+    console.log(this.api);
   }
 
   /** Gets the messages for a particular conversation ID

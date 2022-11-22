@@ -26,7 +26,6 @@ export class SignupPage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.uke.init();
   }
 
   switchLogin() {
