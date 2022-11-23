@@ -160,6 +160,7 @@ export class UkePalletService {
       this.api.query.uke.conversations.multi(id, async (v) => {
         const messages = v.map((v) => this.parseMessages(v, address));
         const latest: Message = messages.pop().pop();
+        // Note: it only watched for INCOMING, not just any message.
         if (address !== latest.sender) {
           subscriber.next(latest);
         }

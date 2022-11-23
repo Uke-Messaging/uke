@@ -77,8 +77,12 @@ export class MessageviewPage implements OnInit {
       .watchIncomingMessages([this.convo.id], this.currentKeypair.address)
       .subscribe((v) => {
         console.log(v);
-        const latest = this.messages[this.messages.length - 1];
-        if (v.message != latest.message)
+        const recipientMessages = this.messages.filter(
+          (v) =>
+            v.recipient == this.recipient.accountId ||
+            v.sender == this.recipient.accountId
+        );
+        if (v.time != recipientMessages[recipientMessages.length - 1].time)
           this.messages.push(v);
       });
   }
