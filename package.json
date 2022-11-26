@@ -7,7 +7,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "test": "ng test",
+    "test": "ng test --code-coverage",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
@@ -35,6 +35,7 @@
     "@polkadot/keyring": "^10.1.2",
     "@polkadot/ui-keyring": "^2.9.3",
     "cordova-plugin-dialogs": "^2.0.2",
+    "cordova-plugin-file": "^7.0.0",
     "cordova-plugin-media": "^6.1.0",
     "cordova-plugin-nativeaudio": "^3.0.9",
     "hexyjs": "^2.1.4",

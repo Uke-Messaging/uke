@@ -28,6 +28,8 @@ npm install -g @ionic/cli
 To build for web, run the following:
 
 ```sh
+# install dependencies
+npm install
 npm run build
 ```
 
@@ -38,12 +40,18 @@ You can then use the `www/` directory to deploy wherever.
 For Android, ensure you have Android Studio installed on your system:
 
 ```sh
+# install dependencies
+npm install
 ionic capacitor build android
 ```
 
 For iOS, make sure you have Xcode and CocoaPods installed on your system:
 
 ```sh
+# if you don't have CocoaPods:
+sudo gem install cocoapods
+# install dependencies
+npm install
 ionic capacitor build ios
 ```
 
@@ -58,8 +66,9 @@ The Substrate node instance is hosted at node.uke.chat.
 Testing locally, clone the repo and run the following:
 
 ```sh
+# install dependencies
 npm install
-ng test
+npm test
 ```
 
 To test with docker, build the included image:
