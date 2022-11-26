@@ -25,8 +25,7 @@ export class SignupPage implements OnInit {
     private notifService: NotifService
   ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   switchLogin() {
     this.loginSwitch = !this.loginSwitch;
@@ -37,12 +36,14 @@ export class SignupPage implements OnInit {
   async login() {
     try {
       const keypair = await this.keyring.loadAccount();
+      if (this.userId != keypair.username)
+        throw Error("User id doesn't match stored keypair");
       await this.keyring.auth(this.password, keypair.keypair);
       await this.router.navigate(['/tabs/tab1']);
     } catch (e) {
       console.log(e);
       this.notifService.generalErrorAlert(
-        `Wrong credentials, or user doesn't exist.`
+        `Wrong credentials (username or password), or user doesn't exist.`
       );
     }
   }
