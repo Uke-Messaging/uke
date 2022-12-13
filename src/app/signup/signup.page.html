@@ -1,11 +1,20 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title class="uke-logo">UKE</ion-title>
+    <ion-title class="uke-logo">
+      <img src="../../assets/uke-logo.png"
+    /></ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div class="form">
+    <b
+      >WARNING: This is a development network, meaning it is subject to resets
+      and bugs. Make sure to report them!</b
+    >
+    <ion-item>
+      <img src="../../assets/uke-alpha.png" />
+    </ion-item>
     <ion-item>
       <ion-label position="floating">user id</ion-label>
       <ion-input [(ngModel)]="userId"></ion-input>
@@ -18,9 +27,18 @@
       <ion-label position="floating">re-enter password</ion-label>
       <ion-input [(ngModel)]="verifyPassword" type="password"></ion-input>
     </ion-item>
-    <ion-button *ngIf="!loginSwitch" expand="full" color="primary" (click)="signup()">create</ion-button>
-    <ion-button *ngIf="loginSwitch" expand="full" color="primary" (click)="login()">login</ion-button>
-    <ion-button type="small" color="primary" (click)="switchLogin()">{{ switchText }}</ion-button>
+    <ion-button *ngIf="!loginSwitch" color="primary" (click)="signup()"
+      >create</ion-button
+    >
+    <ion-button *ngIf="loginSwitch" color="primary" (click)="login()"
+      >login</ion-button
+    >
+    <ion-button color="primary" (click)="switchLogin()"
+      >{{ switchText }}</ion-button
+    >
+    <ion-button color="warning" (click)="clear()"
+      >reset storage (WARNING: DEV FEATURE!)</ion-button
+    >
   </div>
 </ion-content>
 

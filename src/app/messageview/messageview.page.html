@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title> {{ recipient }} </ion-title>
+    <ion-title *ngIf="recipient">{{ recipient.username }}</ion-title>
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
@@ -10,15 +10,24 @@
 <ion-content>
   <ion-list lines="none">
     <ion-item *ngFor="let msg of messages">
-      <ion-card [ngClass]="msg.sender.uniqueId === sender ? 'sender' : ''">
+      <ion-card [ngClass]="msg.sender == currentAddress ? 'sender' : ''">
         <ion-card-content> {{ msg.message }} </ion-card-content>
-        <ion-card-subtitle [ngClass]="msg.sender.uniqueId !== sender ? 'time-recipient' : ''">{{ msg.time }}</ion-card-subtitle>
+        <ion-card-subtitle
+          [ngClass]="msg.sender !== currentAddress ? 'time-recipient' : ''"
+          >{{ msg.time }}</ion-card-subtitle
+        >
       </ion-card>
     </ion-item>
   </ion-list>
-
-  <div class="compose">
-    <ion-input placeholder="compose..."></ion-input>
-    <ion-icon color="primary" name="send"></ion-icon>
-  </div>
 </ion-content>
+
+<div class="compose">
+  <ion-input (keyup.enter)="send()" placeholder="compose..." [(ngModel)]="message"></ion-input>
+  <ion-button
+    [disabled]="message.length == 0 || message === ''"
+    color="primary"
+    (click)="send()"
+  >
+    <ion-icon name="send"></ion-icon>
+  </ion-button>
+</div>

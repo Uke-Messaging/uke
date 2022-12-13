@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { KeyringService } from '../keyring.service';
+import { KeyringService } from '../services/keyring.service';
+import { NotifService } from '../services/notif.service';
+import { UkePalletService } from '../services/ukepallet.service';
+import { StoredUser, User } from '../model/user.model';
 
 @Component({
   selector: 'app-signup',
@@ -10,14 +13,17 @@ import { KeyringService } from '../keyring.service';
 export class SignupPage implements OnInit {
   loginSwitch: boolean = false;
 
-  userId: string = 'sadf';
-  password: string = 'password';
-  verifyPassword: string = 'password';
+  userId: string = '';
+  password: string = '';
+  verifyPassword: string = '';
   switchText: string = 'already have an account?';
 
-  constructor(private keyring: KeyringService, private router: Router) {
-    this.keyring.init().then((_) => _);
-  }
+  constructor(
+    private keyring: KeyringService,
+    private router: Router,
+    private uke: UkePalletService,
+    private notifService: NotifService
+  ) {}
 
   ngOnInit() {}
 
@@ -29,32 +35,42 @@ export class SignupPage implements OnInit {
 
   async login() {
     try {
-      const current = await this.keyring.getCurrentAccount(this.userId);
-      current.unlock(this.password);
-      if (!current.isLocked) {
-        console.log(current.address);
-        current.lock();
-        await this.router.navigate(['/tabs/tab1']);
-      }
-    } catch {
-      alert('WRONG PASSWORD FOR ACCOUNT');
+      const keypair = await this.keyring.loadAccount();
+      if (this.userId != keypair.username)
+        throw Error("User id doesn't match stored keypair");
+      await this.keyring.auth(this.password, keypair.keypair);
+      await this.router.navigate(['/tabs/tab1']);
+    } catch (e) {
+      console.log(e);
+      this.notifService.generalErrorAlert(
+        `Wrong credentials (username or password), or user doesn't exist.`
+      );
     }
   }
 
   async signup() {
-    if (this.password !== this.verifyPassword || this.password.length < 8) {
-      throw Error('Passwords do not match or it is not at least 8 chars');
+    if (this.password !== this.verifyPassword || this.password.length < 3) {
+      throw Error('Passwords do not match or it is not at least 3 chars');
+    } else {
+      await this.keyring
+        .createNewAccount(this.userId, this.password, this.verifyPassword)
+        .then(async (_) => {
+          const local = await this.keyring.loadAccount();
+          local.keypair.unlock(this.password);
+          await this.uke.assignUsername(this.userId, local.keypair);
+          local.keypair.lock();
+          await this.keyring.auth(this.password, local.keypair);
+          await this.router.navigate(['/tabs/tab1']);
+        })
+        .catch((_) => {
+          if (_.message === 'User ID already exists')
+            this.keyring.clearStorage();
+          this.notifService.generalErrorAlert(_.message);
+        });
     }
-    try {
-      const current = await this.keyring.getCurrentAccount(this.userId);
-      alert(`Existing account ${current.meta.name} exists`);
-    } catch {
-      await this.keyring.createNewAccount(
-        this.userId,
-        this.password,
-        this.verifyPassword
-      );
-      await this.router.navigate(['/tabs/tab1']);
-    }
+  }
+
+  async clear() {
+    await this.keyring.clearStorage();
   }
 }

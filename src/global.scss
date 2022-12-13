@@ -16,7 +16,7 @@
 @import "~@ionic/angular/css/normalize.css";
 @import "~@ionic/angular/css/structure.css";
 @import "~@ionic/angular/css/typography.css";
-@import '~@ionic/angular/css/display.css';
+@import "~@ionic/angular/css/display.css";
 
 /* Optional CSS utils that can be commented out */
 @import "~@ionic/angular/css/padding.css";
@@ -25,33 +25,33 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
-
 ion-toolbar {
-    border-radius: 0px 0px 8px 8px;
-}
-
-ion-content {
-    --background: url("./assets/background.svg") 0 0/100% 100% no-repeat;
+  border-radius: 0px 0px 8px 8px;
 }
 
 ion-list {
-    opacity: 75%;
+  opacity: 75%;
 }
+
 @font-face {
-    font-family: 'Autobus';
-    src: url('./assets/AutobusOmnibus.ttf');
+  font-family: "Autobus";
+  src: url("./assets/AutobusOmnibus.ttf");
 }
 
 .uke-logo {
-    font-family: 'Autobus';
-    color: #FEFFD3;
-    font-size: 36px;
-    text-align: center;
+  font-family: "Autobus";
+  color: #feffd3;
+  font-size: 36px;
+  text-align: center;
+}
+
+.uke-logo img {
+  max-height: 40px;
 }
 
 .uke-sub-logo {
-    font-family: 'Autobus';
-    color: #FEFFD3;
-    font-size: 16px;
-    text-align: center;
+  font-family: "Autobus";
+  color: #feffd3;
+  font-size: 16px;
+  text-align: center;
 }

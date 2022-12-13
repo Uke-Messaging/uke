@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { KeyringService } from './keyring.service';
+import { NotifService } from './notif.service';
 
-describe('KeyringService', () => {
-  let service: KeyringService;
+describe('NotifService', () => {
+  let service: NotifService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(KeyringService);
+    service = TestBed.inject(NotifService);
   });
 
   it('should be created', () => {

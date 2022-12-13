@@ -1,16 +1,18 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>
-      Profile
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Profile</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
+  <ion-toolbar color="primary">
+    <h2 class="username">hi, {{ username }}</h2>
+    <h3 class="address">
+      <div class="ion-text-wrap">
+        {{ address }}
+        <ion-icon name="copy-outline"></ion-icon>
+      </div>
+    </h3>
+    <p>
+      this is your account address, which is uniquely mapped to your username.
+    </p>
+    <ion-chip color="light"
+      >Active Conversations: {{ numberOfActiveConversations }}</ion-chip
+    >
+  </ion-toolbar>
+  <ion-button expand="full" (click)="logout()">logout</ion-button>
 </ion-content>
